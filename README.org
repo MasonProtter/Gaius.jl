@@ -32,7 +32,7 @@ Platform Info:
 Environment:
   JULIA_NUM_THREADS = 6
 #+END_SRC
-and compared to ~OpenBLAS~ running with ~6~ threads
+and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6~ threads
 (~BLAS.set_num_threads(6)~). I would be keenly interested in seeing
 analogous benchmarks on a machine with an AVX512 instruction set.
 
@@ -44,7 +44,7 @@ analogous benchmarks on a machine with an AVX512 instruction set.
 /Note that these are log-log plots/ 
 #+END_CENTER
 
-Gaius.jl outperforms OpenBLAS over a very wide useful range of matrix
+Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a very wide useful range of matrix
 sizes, but does eventually start falling behind when it approaches =~600 × ~600= matrices.
 
 **** Integer Performance
