@@ -1,8 +1,8 @@
-* Gaius.jl
 #+BEGIN_CENTER
 /Because Caesar.jl was taken/ 
 #+END_CENTER
 
+* Gaius.jl
 Gaius.jl is a multi-threaded BLAS-like library using a
 divide-and-conquer strategy to parallelism, and built on top of the
 *fantastic* [[https://github.com/chriselrod/LoopVectorization.jl][LoopVectorization.jl]]. Gaius.jl spawns threads using
@@ -55,8 +55,10 @@ julia> A, B = rand(104, 104), rand(104, 104);
 julia> @btime $A * $B;
   45.657 μs (2 allocations: 84.58 KiB)
 
-julia> @btime Gaius.:(*)($A, $B);
-  30.852 μs (133 allocations: 89.11 KiB)
+julia> @btime let * = Gaius.:(*)
+           $A * $B
+       end;
+  30.875 μs (133 allocations: 89.11 KiB)
 #+END_SRC
 
 *** Benchmarks 
