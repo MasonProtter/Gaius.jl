@@ -1,10 +1,14 @@
-name = "LoopVectorizationBLAS"
+name = "Gaius"
 uuid = "77075a08-9435-4dff-851b-a3fb1552cfd3"
-authors = ["MasonProtter <mason.protter@gmail.com>"]
+authors = ["MasonProtter <mason.protter@icloud.com>"]
 version = "0.1.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
-Restacker = "c1a4a645-e475-48fc-995c-050d7abeafb8"
-UnsafeArrays = "c4a57d5a-5b31-53a6-b365-19f8c011fbd6"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = ["Test"]

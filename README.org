@@ -1,0 +1,74 @@
+* Gaius.jl
+#+BEGIN_CENTER
+/Because Caesar.jl was taken/ 
+#+END_CENTER
+
+Gaius.jl is a multi-threaded BLAS-like library using a
+divide-and-conquer strategy to parallelism, and built on top of the
+*fantastic* [[https://github.com/chriselrod/LoopVectorization.jl][LoopVectorization.jl]]. Gaius.jl spawns threads using
+Julia's depth first parallel task runtime and so Gaius.jl's routines
+may be fearlessly nested inside multi-threaded julia programs.
+
+** Matrix Multiplication
+Currently, fast, native matrix-multiplication is only implemented
+between matrices of types ~Matrix{<:Union{Float64, Float32, Int64,
+Int32}}~, though I have plans to provide support for ~Complex~
+numbers as well as other commonly encountered numeric ~struct~ types
+such as ~Dual~ numbers.
+
+*** Benchmarks 
+**** Floating Point Performance 
+The following benchmarks were run on this 
+#+BEGIN_SRC julia
+julia> versioninfo()
+Julia Version 1.4.0-rc2.0
+Commit b99ed72c95* (2020-02-24 16:51 UTC)
+Platform Info:
+  OS: Linux (x86_64-pc-linux-gnu)
+  CPU: AMD Ryzen 5 2600 Six-Core Processor
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-8.0.1 (ORCJIT, znver1)
+Environment:
+  JULIA_NUM_THREADS = 6
+#+END_SRC
+and compared to ~~OpenBLAS~~ running with ~6~ threads
+(~BLAS.set_num_threads(6)~). I would be keenly interested in seeing
+analogous benchmarks on a machine with an AVX512 instruction set.
+
+[[file:assets/F64_mul.png]]
+
+file:assets/F32_mul.png
+
+#+BEGIN_CENTER
+/Note that these are log-log plots/ 
+#+END_CENTER
+
+Gaius.jl outperforms OpenBLAS over a very wide useful range of matrix
+sizes, but does eventually start falling behind when it approaches =~600 × ~600= matrices.
+
+**** Integer Performance
+These benchmarks compare Gaius.jl (on the same machine as above) and
+compare against julia's generic matrix multiplication implementation
+(OpenBLAS does not provide integer mat-mul) which is not
+multi-threaded. I would be keenly interested in seeing analogous
+benchmarks on a machine with an AVX512 instruction set.
+
+[[file:assets/I64_mul.png]]
+
+file:assets/I32_mul.png
+
+#+BEGIN_CENTER
+/Note that these are log-log plots/ 
+#+END_CENTER
+
+If you find yourself in a high performance situation where you want to
+multiply matrices of integers, I think this provides a compelling
+use-case for Gaius.jl since it will outperform it's competition at
+*any* matrix size and for large matrices will benefit from
+multi-threading.
+
+
+** Other BLAS Routines
+I have not yet worked on implementing other standard BLAS routines
+with this strategy, but doing so should be relatively straightforward.
