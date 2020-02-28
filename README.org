@@ -32,13 +32,13 @@ Platform Info:
 Environment:
   JULIA_NUM_THREADS = 6
 #+END_SRC
-and compared to ~~OpenBLAS~~ running with ~6~ threads
+and compared to ~OpenBLAS~ running with ~6~ threads
 (~BLAS.set_num_threads(6)~). I would be keenly interested in seeing
 analogous benchmarks on a machine with an AVX512 instruction set.
 
 [[file:assets/F64_mul.png]]
 
-file:assets/F32_mul.png
+[[file:assets/F32_mul.png]]
 
 #+BEGIN_CENTER
 /Note that these are log-log plots/ 
@@ -56,7 +56,7 @@ benchmarks on a machine with an AVX512 instruction set.
 
 [[file:assets/I64_mul.png]]
 
-file:assets/I32_mul.png
+[[file:assets/I32_mul.png]]
 
 #+BEGIN_CENTER
 /Note that these are log-log plots/ 
