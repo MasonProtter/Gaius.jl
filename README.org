@@ -47,7 +47,7 @@ julia> @btime Gaius.mul!($C, $A, $B);
 #+END_SRC
 
 
-#+BEGIN_SRC jupyter-julia
+#+BEGIN_SRC julia
 julia> using Gaius, BenchmarkTools
 
 julia> A, B = rand(104, 104), rand(104, 104);
