@@ -34,7 +34,7 @@ Environment:
 #+END_SRC
 and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6~ threads
 (~BLAS.set_num_threads(6)~). I would be keenly interested in seeing
-analogous benchmarks on a machine with an AVX512 instruction set.
+analogous benchmarks on a machine with an AVX512 instruction set and / or [[https://software.intel.com/en-us/mkl][Intel's MKL]].
 
 [[file:assets/F64_mul.png]]
 
