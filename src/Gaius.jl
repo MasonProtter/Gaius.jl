@@ -11,8 +11,6 @@ mul!(args...) = LinearAlgebra.mul!(args...)
 eltypes  = Union{Float64, Float32, Int64, Int32}
 MatTypes = Union{Matrix{<:eltypes}, SubArray{<:eltypes, 2, <:Matrix}}
 
-(*)(A::MatTypes, B::MatTypes) = mul!(Matrix{promote_type(eltype(A), eltype(B))}(undef, size(A,1), size(B,2)))
-
 function gemm_kernel!(C, A, B)
     @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
         Cₙₘ = zero(eltype(C))
@@ -69,19 +67,19 @@ function mul!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul!(    C11, A11, B11)
-                blocked_mul_add!(C11, A12, B21)
+                mul!(    C11, A11, B11)
+                mul_add!(C11, A12, B21)
             end
             Threads.@spawn begin
-                blocked_mul!(    C12, A11, B12)
-                blocked_mul_add!(C12, A12, B22)
+                mul!(    C12, A11, B12)
+                mul_add!(C12, A12, B22)
             end
             Threads.@spawn begin
-                blocked_mul!(    C21, A21, B11)
-                blocked_mul_add!(C21, A22, B21)
+                mul!(    C21, A21, B11)
+                mul_add!(C21, A22, B21)
             end
-            blocked_mul!(    C22, A21, B12)
-            blocked_mul_add!(C22, A22, B22)
+            mul!(    C22, A21, B12)
+            mul_add!(C22, A22, B22)
         end
     elseif n >= 2sz && k >= 2sz && m <  2sz
         @views begin 
@@ -96,11 +94,11 @@ function mul!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul!(    C11, A11, B11)
-                blocked_mul_add!(C11, A12, B21)
+                mul!(    C11, A11, B11)
+                mul_add!(C11, A12, B21)
             end
-            blocked_mul!(    C21, A21, B11)
-            blocked_mul_add!(C21, A22, B21)
+            mul!(    C21, A21, B11)
+            mul_add!(C21, A22, B21)
         end
     elseif n <  2sz && k >= 2sz && m >= 2sz
         @views begin 
@@ -116,8 +114,8 @@ function mul!(C::MatTypes, A::MatTypes, B::MatTypes)
                 blocked_mul!(    C11, A11, B11)
                 blocked_mul_add!(C11, A12, B21)
             end
-            blocked_mul!(    C12, A11, B12)
-            blocked_mul_add!(C12, A12, B22)
+            mul!(    C12, A11, B12)
+            mul_add!(C12, A12, B22)
         end
     elseif n >= 2sz && k <  2sz && m >= 2sz
         @views begin 
@@ -131,15 +129,15 @@ function mul!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul!(    C11, A11, B11)
+                mul!(    C11, A11, B11)
             end
             Threads.@spawn begin
-                blocked_mul!(    C12, A11, B12)
+                mul!(    C12, A11, B12)
             end
             Threads.@spawn begin
-                blocked_mul!(    C21, A21, B11)
+                mul!(    C21, A21, B11)
             end
-            blocked_mul!(    C22, A21, B12)
+            mul!(    C22, A21, B12)
         end
     elseif n <  2sz && k >= 2sz && m <  2sz
         @views begin 
@@ -150,8 +148,8 @@ function mul!(C::MatTypes, A::MatTypes, B::MatTypes)
             B11 = B[1:sz,     1:sz];
             B21 = B[sz+1:end, 1:sz];
         end
-        blocked_mul!(    C11, A11, B11)
-        blocked_mul_add!(C11, A12, B21)
+        mul!(    C11, A11, B11)
+        mul_add!(C11, A12, B21)
     else
         gemm_kernel!(C, A, B)
     end
@@ -174,19 +172,19 @@ function mul_add!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul_add!(    C11, A11, B11)
-                blocked_mul_add!(C11, A12, B21)
+                mul_add!(C11, A11, B11)
+                mul_add!(C11, A12, B21)
             end
             Threads.@spawn begin
-                blocked_mul_add!(    C12, A11, B12)
-                blocked_mul_add!(C12, A12, B22)
+                mul_add!(C12, A11, B12)
+                mul_add!(C12, A12, B22)
             end
             Threads.@spawn begin
-                blocked_mul_add!(    C21, A21, B11)
-                blocked_mul_add!(C21, A22, B21)
+                mul_add!(C21, A21, B11)
+                mul_add!(C21, A22, B21)
             end
-            blocked_mul_add!(    C22, A21, B12)
-            blocked_mul_add!(C22, A22, B22)
+            mul_add!(C22, A21, B12)
+            mul_add!(C22, A22, B22)
         end
     elseif n >= 2sz && k >= 2sz && m <  2sz
         @views begin 
@@ -201,11 +199,11 @@ function mul_add!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul_add!(    C11, A11, B11)
-                blocked_mul_add!(C11, A12, B21)
+                mul_add!(C11, A11, B11)
+                mul_add!(C11, A12, B21)
             end
-            blocked_mul_add!(    C21, A21, B11)
-            blocked_mul_add!(C21, A22, B21)
+            mul_add!(C21, A21, B11)
+            mul_add!(C21, A22, B21)
         end
     elseif n <  2sz && k >= 2sz && m >= 2sz
         @views begin 
@@ -218,11 +216,11 @@ function mul_add!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul_add!(    C11, A11, B11)
-                blocked_mul_add!(C11, A12, B21)
+                mul_add!(C11, A11, B11)
+                mul_add!(C11, A12, B21)
             end
-            blocked_mul_add!(    C12, A11, B12)
-            blocked_mul_add!(C12, A12, B22)
+            mul_add!(C12, A11, B12)
+            mul_add!(C12, A12, B22)
         end
     elseif n >= 2sz && k <  2sz && m >= 2sz
         @views begin 
@@ -236,15 +234,15 @@ function mul_add!(C::MatTypes, A::MatTypes, B::MatTypes)
         end
         @sync begin
             Threads.@spawn begin
-                blocked_mul_add!(    C11, A11, B11)
+                mul_add!(C11, A11, B11)
             end
             Threads.@spawn begin
-                blocked_mul_add!(    C12, A11, B12)
+                mul_add!(C12, A11, B12)
             end
             Threads.@spawn begin
-                blocked_mul_add!(    C21, A21, B11)
+                mul_add!(C21, A21, B11)
             end
-            blocked_mul_add!(    C22, A21, B12)
+            mul_add!(C22, A21, B12)
         end
     elseif n <  2sz && k >= 2sz && m <  2sz
         @views begin 
@@ -255,12 +253,18 @@ function mul_add!(C::MatTypes, A::MatTypes, B::MatTypes)
             B11 = B[1:sz,     1:sz];
             B21 = B[sz+1:end, 1:sz];
         end
-        blocked_mul_add!(    C11, A11, B11)
-        blocked_mul_add!(C11, A12, B21)
+        mul_add!(C11, A11, B11)
+        mul_add!(C11, A12, B21)
     else
         add_gemm_kernel!(C, A, B)
     end
 end
 
+function (*)(A::MatTypes, B::MatTypes)
+    T = promote_type(eltype(A), eltype(B))
+    C = Matrix{T}(undef, size(A,1), size(B,2))
+    mul!(C, A, B)
+    C
+end
 
 end # module

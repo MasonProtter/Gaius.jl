@@ -16,6 +16,49 @@ Int32}}~, though I have plans to provide support for ~Complex~
 numbers as well as other commonly encountered numeric ~struct~ types
 such as ~Dual~ numbers.
 
+*** Using Gaius.jl 
+Gaius.jl does not export any functions, but it internally defines
+~Gaius.:(*)~ and ~Gaius.mul!~ which do out-of-place and in-place
+matrix multiplication on matrices of type ~Matrix{<:Union{Float64,
+Float32, Int64, Int32}}~ respectively.
+
+~Gaius.:(*)~ and ~Gaius.mul!~ are *not* equal to ~Base.:(*)~ and
+~LinearAlgebra.mul!~ though ~Gaius~'s definitions do fall back on
+those definitions for types other than those specialized matrix types.
+
+If you do
+#+BEGIN_SRC julia
+using Gaius: *, mul! 
+#+END_SRC
+in a scope before using ~*~ or ~mul!~ in that scope, then ~Gaius.jl~'s
+definitions will /shadow/ the regular ones. This is not type piracy
+and these shadowed definitions will not propagate into enclosing scopes.
+
+#+BEGIN_SRC julia
+julia> using Gaius, BenchmarkTools, LinearAlgebra
+
+julia> A, B, C = rand(104, 104), rand(104, 104), zeros(104, 104);
+
+julia> @btime mul!($C, $A, $B);
+  42.364 μs (0 allocations: 0 bytes)
+
+julia> @btime Gaius.mul!($C, $A, $B);
+  30.064 μs (131 allocations: 4.53 KiB)
+#+END_SRC
+
+
+#+BEGIN_SRC jupyter-julia
+julia> using Gaius, BenchmarkTools
+
+julia> A, B = rand(104, 104), rand(104, 104);
+
+julia> @btime $A * $B;
+  45.657 μs (2 allocations: 84.58 KiB)
+
+julia> @btime Gaius.:(*)($A, $B);
+  30.852 μs (133 allocations: 89.11 KiB)
+#+END_SRC
+
 *** Benchmarks 
 **** Floating Point Performance 
 The following benchmarks were run on this 
