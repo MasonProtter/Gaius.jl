@@ -16,36 +16,6 @@ function (*)(A::MatTypes, B::MatTypes)
     C
 end
 
-function gemm_kernel!(C, A, B)
-    @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
-        for k ∈ 1:size(A, 2)
-            Cₙₘ += A[n,k] * B[k,m]
-        end
-        C[n,m] = Cₙₘ
-    end
-end
-
-function gemm_kernel!(C, A, B, D, E)
-    @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
-        for k ∈ 1:size(A, 2)
-            Cₙₘ += A[n,k] * B[k,m] + D[n,k]*E[k,n] 
-        end
-        C[n,m] = Cₙₘ
-    end
-end
-
-function add_gemm_kernel!(C, A, B)
-    @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
-        for k ∈ 1:size(A, 2)
-            Cₙₘ += A[n,k] * B[k,m]
-        end
-        C[n,m] += Cₙₘ
-    end
-end
-
 function check_compatible_sizes(C, A, B)
     n, m = size(C)
     a, k = size(A)
@@ -96,16 +66,6 @@ function _mul_add!(C, A, B, sz)
         add_gemm_kernel!(C, A, B)
     end
 end
-
-# Note this does not support changing the number of threads at runtime
-macro _spawn(ex)
-    if Threads.nthreads() > 1
-        :(Threads.@spawn $(esc(ex)))
-    else
-        esc(ex)
-    end
-end
-
 
 #----------------------------------------------------------------
 #----------------------------------------------------------------
@@ -165,9 +125,9 @@ end
 
 function block_covec_mat_mul!(C, A, B, sz)
     @inbounds @views begin 
-        C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
+        C11 = C[1:end,    1:sz]; C12 = C[1:end,    sz+1:end] 
 
-        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
+        A11 = A[1:end,    1:sz]; A12 = A[1:end,    sz+1:end] 
 
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
@@ -188,10 +148,10 @@ function block_vec_covec_mul!(C, A, B, sz)
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
-        A11 = A[1:sz,     1:sz];
-        A21 = A[sz+1:end, 1:sz]; 
+        A11 = A[1:sz,     1:end];
+        A21 = A[sz+1:end, 1:end]; 
 
-        B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
+        B11 = B[1:end,     1:sz]; B12 = B[1:end,     sz+1:end] 
     end
     @sync begin
         Threads.@spawn begin
@@ -210,10 +170,10 @@ end
 
 function block_covec_vec_mul!(C, A, B, sz)
     @inbounds @views begin 
-        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
+        A11 = A[1:end,    1:sz]; A12 = A[1:sz,     sz+1:end] 
 
-        B11 = B[1:sz,     1:sz];
-        B21 = B[sz+1:end, 1:sz];
+        B11 = B[1:sz,     1:end];
+        B21 = B[sz+1:end, 1:end];
     end
     gemm_kernel!(C, A11, B11)
     #_mul!(    C, A11, B11, sz)
@@ -278,9 +238,9 @@ end
 
 function block_covec_mat_mul_add!(C, A, B, sz)
     @inbounds @views begin 
-        C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
+        C11 = C[1:end,    1:sz]; C12 = C[1:end,     sz+1:end] 
 
-        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
+        A11 = A[1:end,    1:sz]; A12 = A[1:end,    sz+1:end] 
 
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
@@ -301,10 +261,10 @@ function block_vec_covec_mul_add!(C, A, B, sz)
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
-        A11 = A[1:sz,     1:sz];
-        A21 = A[sz+1:end, 1:sz]; 
+        A11 = A[1:sz,     1:end];
+        A21 = A[sz+1:end, 1:end]; 
 
-        B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
+        B11 = B[1:end,    1:sz]; B12 = B[1:end,    sz+1:end] 
     end
     @sync begin
         Threads.@spawn begin
@@ -323,16 +283,40 @@ end
 
 function block_covec_vec_mul_add!(C, A, B, sz)
     @inbounds @views begin 
-        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
+        A11 = A[1:end,    1:sz]; A12 = A[1:end,    sz+1:end] 
 
-        B11 = B[1:sz,     1:sz];
-        B21 = B[sz+1:end, 1:sz];
+        B11 = B[1:sz,     1:end];
+        B21 = B[sz+1:end, 1:end];
     end
-    
     add_gemm_kernel!(C, A11, B11)
     #_mul_add!(C, A11, B11, sz)
     _mul_add!(C, A12, B21, sz)
 end
 
+# , Val{sz}(), Val{sz}(), Val{sz}()
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# The workhorses
+
+function gemm_kernel!(C, A, B)
+    @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
+        Cₙₘ = zero(eltype(C))
+        for k ∈ 1:size(A, 2)
+            Cₙₘ += A[n,k] * B[k,m]
+        end
+        C[n,m] = Cₙₘ
+    end
+end
+
+function add_gemm_kernel!(C, A, B)
+    @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
+        Cₙₘ = zero(eltype(C))
+        for k ∈ 1:size(A, 2)
+            Cₙₘ += A[n,k] * B[k,m]
+        end
+        C[n,m] += Cₙₘ
+    end
+end
 
 end # module

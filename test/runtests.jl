@@ -1,9 +1,21 @@
-using Test, LinearAlgebra
+using Test, LinearAlgebra, Random
 using Gaius
 
 @testset "Float64 Multiplication" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
+        @testset "($n × $k) × ($k × $m)" begin
+            C1 = zeros(n, m)
+            C2 = zeros(n, m)
+            A  = randn(n, k)
+            B  = randn(k, m)
+           
+            @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test Gaius.:(*)(A, B) ≈ C1
+        end
+    end
+    for sz ∈ [10, 50, 100, 200, 400, 1000]
+        n, k, m = shuffle([sz + rand(-5:5), sz + rand(-5:5), 10])
         @testset "($n × $k) × ($k × $m)" begin
             C1 = zeros(n, m)
             C2 = zeros(n, m)
