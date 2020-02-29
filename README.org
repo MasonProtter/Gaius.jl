@@ -46,6 +46,10 @@ julia> @btime Gaius.mul!($C, $A, $B);
   30.064 μs (131 allocations: 4.53 KiB)
 #+END_SRC
 
+You can change the matrix sub-block size by calling ~mul!~ with the
+~size_cutoff~ keyword argument, the default to which is ~64÷2~, i.e. a
+matrix will be split into subblocks along any dimension exceeding 64
+entries (I'll change this interface to be a bit less confusing!)
 
 #+BEGIN_SRC julia
 julia> using Gaius, BenchmarkTools
@@ -82,9 +86,9 @@ and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6
 analogous benchmarks on a machine with an AVX512 instruction set and / or [[https://software.intel.com/en-us/mkl][Intel's MKL]].
 
 [[file:assets/F64_mul.png]]
-
+#+BEGIN_COMMENT
 [[file:assets/F32_mul.png]]
-
+#+END_COMMENT
 #+BEGIN_CENTER
 /Note that these are log-log plots/ 
 #+END_CENTER
@@ -99,9 +103,13 @@ compare against julia's generic matrix multiplication implementation
 multi-threaded. I would be keenly interested in seeing analogous
 benchmarks on a machine with an AVX512 instruction set.
 
+Graphs coming soon
+#+BEGIN_COMMENT
 [[file:assets/I64_mul.png]]
 
 [[file:assets/I32_mul.png]]
+#+END_COMMENT
+
 
 #+BEGIN_CENTER
 /Note that these are log-log plots/ 
