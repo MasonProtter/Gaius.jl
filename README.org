@@ -9,6 +9,10 @@ divide-and-conquer strategy to parallelism, and built on top of the
 Julia's depth first parallel task runtime and so Gaius.jl's routines
 may be fearlessly nested inside multi-threaded julia programs.
 
+Gaius is currently faster than OpenBLAS for all matrix sizes I've
+managed to test and I think there are still a lot of performance gains
+to be had.
+
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
 between matrices of types ~Matrix{<:Union{Float64, Float32, Int64,
@@ -86,16 +90,14 @@ and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6
 analogous benchmarks on a machine with an AVX512 instruction set and / or [[https://software.intel.com/en-us/mkl][Intel's MKL]].
 
 [[file:assets/F64_mul.png]]
-#+BEGIN_COMMENT
+
 [[file:assets/F32_mul.png]]
-#+END_COMMENT
+
 #+BEGIN_CENTER
 /Note that these are log-log plots/ 
 #+END_CENTER
 
-Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] for a gigantic range of matrix sizes,
-though it will eventually fall behind (i'll update this with
-quantitave sizes where it falls begind).
+Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] for as high up in matrix sizes as I've bothered to test it. The larest I've tested is ~10,000 x 10,000~ arrays at which Gaius beats OpenBLAS by a factor of 50 runtime speed.
 
 **** Integer Performance
 These benchmarks compare Gaius.jl (on the same machine as above) and
