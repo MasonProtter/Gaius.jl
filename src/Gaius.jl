@@ -1,10 +1,13 @@
 module Gaius
 
-using LoopVectorization: @avx
+using LoopVectorization: @avx, VectorizationBase.PackedStridedPointer, VectorizationBase.SparseStridedPointer, VectorizationBase.gep, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.REGISTER_SIZE
+import LoopVectorization: @avx, VectorizationBase.stridedpointer
 using LinearAlgebra: LinearAlgebra
 
-eltypes  = Union{Float64, Float32, Int64, Int32}
-MatTypes = Union{Matrix{<:eltypes}, SubArray{<:eltypes, 2, <:Matrix}}
+
+const DEFAULT_BLOCK_SIZE = REGISTER_SIZE == 64 ? 128 : 104
+const Eltypes  = Union{Float64, Float32, Int64, Int32, Int16}
+const MatTypes{T <: Eltypes} = Union{Matrix{T}, SubArray{T, 2, <: Array}}
 
 mul!(args...) = LinearAlgebra.mul!(args...)
 (*)(args...)  = Base.:(*)(args...)
@@ -24,10 +27,48 @@ function check_compatible_sizes(C, A, B)
     nothing
 end
 
+abstract type AbstractPointerMatrix{T} <: AbstractMatrix{T} end
+struct PointerMatrix{T} <: AbstractPointerMatrix{T}
+    ptr::Ptr{T}
+    size::NTuple{2,Int}
+    stride2::Int
+end
+struct SparseStridePointerMatrix{T} <: AbstractPointerMatrix{T}
+    ptr::Ptr{T}
+    size::Tuple{Int,Int}
+    strides::Tuple{Int,Int}
+end
+@inline PtrMatrix(A::MatTypes) = PointerMatrix(pointer(A), size(A), stride(A, 2))
+@inline PtrMatrix(A::SubArray{T,2,<:Array{T,<:Any},<:Tuple{Int64,Vararg}}) where {T <: Eltypes} = SparseStridePointerMatrix(pointer(A), size(A), strides(A))
+@inline Base.pointer(A::AbstractPointerMatrix) = A.ptr
+@inline Base.size(A::AbstractPointerMatrix) = A.size
+@inline Base.strides(A::PointerMatrix) = (1, A.stride2)
+@inline Base.strides(A::SparseStridePointerMatrix) = A.strides
+@inline stridedpointer(A::PointerMatrix) = PackedStridedPointer(A.ptr, (A.stride2,))
+@inline stridedpointer(A::SparseStridePointerMatrix) = SparseStridedPointer(A.ptr, A.strides)
+@inline Base.maybeview(A::PointerMatrix, r::UnitRange, c::UnitRange) = PointerMatrix(gep(pointer(A), first(r) - 1 + (first(c) - 1)*A.stride2), (length(r), length(c)), A.stride2)
+@inline Base.maybeview(A::SparseStridePointerMatrix, r::UnitRange, c::UnitRange) = @inbounds SparseStridePointerMatrix(gep(pointer(A), (first(r) - 1)*A.strides[1] + (first(c) - 1)*A.strides[2]), (length(r), length(c)), A.strides)
+# getindex is important for the sake of printing the AbstractPointerMatrix. If we call something a Matrix, it's nice to support the interface if possible.
+Base.@propagate_inbounds function Base.getindex(A::AbstractPointerMatrix, i::Integer, j::Integer)
+    @boundscheck begin
+        M, N = size(A)
+        (M < i || N < j) && throw(BoundsError(A, (i,j)))
+    end
+    vload(stridedpointer(A), (i-1, j-1))
+end
+Base.@propagate_inbounds function Base.getindex(A::AbstractPointerMatrix, v, i::Integer, j::Integer)
+    @boundscheck begin
+        M, N = size(A)
+        (M < i || N < j) && throw(BoundsError(A, (i,j)))
+    end
+    vstore!(stridedpointer(A), v, (i-1, j-1))
+end
+Base.IndexStyle(::Type{<:AbstractPointerMatrix}) = IndexCartesian()
 
-function mul!(C::MatTypes, A::MatTypes, B::MatTypes; block_size=104, sizecheck=true)
+
+function mul!(C::MatTypes, A::MatTypes, B::MatTypes; block_size = DEFAULT_BLOCK_SIZE, sizecheck=true)
     sizecheck && check_compatible_sizes(C, A, B)
-    _mul!(C, A, B, block_size÷2)
+    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size >>> 1)
     C
 end
 
@@ -67,32 +108,48 @@ function _mul_add!(C, A, B, sz)
     end
 end
 
+# Note this does not support changing the number of threads at runtime
+macro _spawn(ex)
+    if Threads.nthreads() > 1
+        esc(Expr(:macrocall, Expr(:(.), :Threads, QuoteNode(Symbol("@spawn"))), __source__, ex))
+    else
+        esc(ex)
+    end
+end
+macro _sync(ex)
+    if Threads.nthreads() > 1
+        esc(Expr(:macrocall, Symbol("@sync"), __source__, ex))
+    else
+        esc(ex)
+    end    
+end
+
 #----------------------------------------------------------------
 #----------------------------------------------------------------
 # Block Matrix multiplication
 
 @inline function block_mat_mat_mul!(C, A, B, sz)
     @inbounds @views begin 
-        C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
+        C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end]
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
-        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
+        A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end]
         A21 = A[sz+1:end, 1:sz]; A22 = A[sz+1:end, sz+1:end]
 
-        B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
+        B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end]
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             #_mul!(    C11, A11, B11, sz)
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(    C12, A11, B12, sz)
             _mul_add!(C12, A12, B22, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(    C21, A21, B11, sz)
             _mul_add!(C21, A22, B21, sz)
         end
@@ -112,8 +169,8 @@ function block_mat_vec_mul!(C, A, B, sz)
         B11 = B[1:sz,     1:end]; 
         B21 = B[sz+1:end, 1:end];
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             #_mul!(    C11, A11, B11, sz)
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
@@ -132,8 +189,8 @@ function block_covec_mat_mul!(C, A, B, sz)
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             #_mul!(    C11, A11, B11, sz)
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
@@ -153,15 +210,15 @@ function block_vec_covec_mul!(C, A, B, sz)
 
         B11 = B[1:end,     1:sz]; B12 = B[1:end,     sz+1:end] 
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             #_mul!(    C11, A11, B11, sz)
             gemm_kernel!(C11, A11, B11)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(C12, A11, B12, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(C21, A21, B11, sz)
         end
         _mul!(C22, A21, B12, sz)
@@ -195,17 +252,17 @@ end
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             #_mul_add!(C11, A11, B11, sz)
             _mul_add!(C11, A12, B21, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C12, A11, B12, sz)
             _mul_add!(C12, A12, B22, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C21, A21, B11, sz)
             _mul_add!(C21, A22, B21, sz)
         end
@@ -225,8 +282,8 @@ function block_mat_vec_mul_add!(C, A, B, sz)
         B11 = B[1:sz,     1:end]; 
         B21 = B[sz+1:end, 1:end];
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             #_mul_add!(C11, A11, B11, sz)
             _mul_add!(C11, A12, B21, sz)
@@ -245,8 +302,8 @@ function block_covec_mat_mul_add!(C, A, B, sz)
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             #_mul_add!(C11, A11, B11, sz)
             _mul_add!(C11, A12, B21, sz)
@@ -266,15 +323,15 @@ function block_vec_covec_mul_add!(C, A, B, sz)
 
         B11 = B[1:end,    1:sz]; B12 = B[1:end,    sz+1:end] 
     end
-    @sync begin
-        Threads.@spawn begin
+    @_sync begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             #_mul_add!(C11, A11, B11, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C12, A11, B12, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C21, A21, B11, sz)
         end
         _mul_add!(C22, A21, B12, sz)
