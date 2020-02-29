@@ -120,7 +120,8 @@ with this strategy, but doing so should be relatively straightforward.
 
 ** Safety
 /If you must break the law, do it to seize power; in all other cases observe it./
-    /-Gaius Julius Caesar/
+
+    -Gaius Julius Caesar
 
 If you use only the functions ~Gaius.mul!~ and ~Gaius.:(*)~, automatic
 array size-checking will occur before the matrix multiplication
