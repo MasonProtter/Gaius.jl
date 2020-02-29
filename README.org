@@ -14,7 +14,7 @@ Currently, fast, native matrix-multiplication is only implemented
 between matrices of types ~Matrix{<:Union{Float64, Float32, Int64,
 Int32}}~, though I have plans to provide support for ~Complex~
 numbers as well as other commonly encountered numeric ~struct~ types
-such as ~Dual~ numbers.
+such as ~Rational~ and ~Dual~ numbers.
 
 *** Using Gaius.jl 
 Gaius.jl does not export any functions, but it internally defines
