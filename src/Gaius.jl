@@ -102,7 +102,7 @@ end
 # Block Matrix multiplication
 
 @inline function block_mat_mat_mul!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
@@ -131,7 +131,7 @@ end
 end
 
 function block_mat_vec_mul!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:end]; 
         C21 = C[sz+1:end, 1:end];
 
@@ -152,7 +152,7 @@ function block_mat_vec_mul!(C, A, B, sz)
 end
 
 function block_covec_mat_mul!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
 
         A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
@@ -171,7 +171,7 @@ function block_covec_mat_mul!(C, A, B, sz)
 end
 
 function block_vec_covec_mul!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
@@ -195,7 +195,7 @@ function block_vec_covec_mul!(C, A, B, sz)
 end
 
 function block_covec_vec_mul!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
 
         B11 = B[1:sz,     1:sz];
@@ -210,7 +210,7 @@ end
 # Block Matrix addition-multiplication
 
 @inline function block_mat_mat_mul_add!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
@@ -239,7 +239,7 @@ end
 end
 
 function block_mat_vec_mul_add!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:end]; 
         C21 = C[sz+1:end, 1:end];
 
@@ -260,7 +260,7 @@ function block_mat_vec_mul_add!(C, A, B, sz)
 end
 
 function block_covec_mat_mul_add!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
 
         A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
@@ -279,7 +279,7 @@ function block_covec_mat_mul_add!(C, A, B, sz)
 end
 
 function block_vec_covec_mul_add!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
 
@@ -303,7 +303,7 @@ function block_vec_covec_mul_add!(C, A, B, sz)
 end
 
 function block_covec_vec_mul_add!(C, A, B, sz)
-    @views begin 
+    @inbounds @views begin 
         A11 = A[1:sz,     1:sz]; A12 = A[1:sz,     sz+1:end] 
 
         B11 = B[1:sz,     1:sz];
