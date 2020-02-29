@@ -117,3 +117,19 @@ multi-threading.
 ** Other BLAS Routines
 I have not yet worked on implementing other standard BLAS routines
 with this strategy, but doing so should be relatively straightforward.
+
+** Safety
+/If you must break the law, do it to seize power; in all other cases observe it./
+    /-Gaius Julius Caesar/
+
+If you use only the functions ~Gaius.mul!~ and ~Gaius.:(*)~, automatic
+array size-checking will occur before the matrix multiplication
+begins. This can be turned off in ~mul!~ by calling ~Gaius.mul!(C, A,
+B, sizecheck=false)~, in which case no sizechecks will occur on the
+arrays before the matrix multiplication occurs and all sorts of bad,
+segfaulty things can happen.
+
+All other functions in this package are to be considered /internal/
+and should not be expected to check for safety or obey the law. The
+functions ~Gaius.gemm_kernel!~ and ~Gaius.add_gemm_kernel!~ may be of
+utility, but be warned that they do not check array sizes.
