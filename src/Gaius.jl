@@ -97,6 +97,16 @@ function _mul_add!(C, A, B, sz)
     end
 end
 
+# Note this does not support changing the number of threads at runtime
+macro _spawn(ex)
+    if Threads.nthreads() > 1
+        :(Threads.@spawn $(esc(ex)))
+    else
+        esc(ex)
+    end
+end
+
+
 #----------------------------------------------------------------
 #----------------------------------------------------------------
 # Block Matrix multiplication
@@ -113,15 +123,15 @@ end
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(    C12, A11, B12, sz)
             _mul_add!(C12, A12, B22, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(    C21, A21, B11, sz)
             _mul_add!(C21, A22, B21, sz)
         end
@@ -142,7 +152,7 @@ function block_mat_vec_mul!(C, A, B, sz)
         B21 = B[sz+1:end, 1:end];
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
@@ -161,7 +171,7 @@ function block_covec_mat_mul!(C, A, B, sz)
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
@@ -181,13 +191,13 @@ function block_vec_covec_mul!(C, A, B, sz)
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             gemm_kernel!(C11, A11, B11)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(C12, A11, B12, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul!(C21, A21, B11, sz)
         end
         _mul!(C22, A21, B12, sz)
@@ -221,15 +231,15 @@ end
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C12, A11, B12, sz)
             _mul_add!(C12, A12, B22, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C21, A21, B11, sz)
             _mul_add!(C21, A22, B21, sz)
         end
@@ -250,7 +260,7 @@ function block_mat_vec_mul_add!(C, A, B, sz)
         B21 = B[sz+1:end, 1:end];
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
@@ -269,7 +279,7 @@ function block_covec_mat_mul_add!(C, A, B, sz)
         B21 = B[sz+1:end, 1:sz]; B22 = B[sz+1:end, sz+1:end]
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
             _mul_add!(C11, A12, B21, sz)
         end
@@ -289,13 +299,13 @@ function block_vec_covec_mul_add!(C, A, B, sz)
         B11 = B[1:sz,     1:sz]; B12 = B[1:sz,     sz+1:end] 
     end
     @sync begin
-        Threads.@spawn begin
+        @_spawn begin
             add_gemm_kernel!(C11, A11, B11)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C12, A11, B12, sz)
         end
-        Threads.@spawn begin
+        @_spawn begin
             _mul_add!(C21, A21, B11, sz)
         end
         _mul_add!(C22, A21, B12, sz)
