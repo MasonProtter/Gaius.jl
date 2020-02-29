@@ -6,7 +6,7 @@ using LinearAlgebra: LinearAlgebra
 
 
 const DEFAULT_BLOCK_SIZE = REGISTER_SIZE == 64 ? 128 : 104
-const Eltypes  = Union{Float64, Float32, Int64, Int32}
+const Eltypes  = Union{Float64, Float32, Int64, Int32, Int16}
 const MatTypes{T <: Eltypes} = Union{Matrix{T}, SubArray{T, 2, <: Array}}
 
 mul!(args...) = LinearAlgebra.mul!(args...)
