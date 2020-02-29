@@ -10,7 +10,7 @@ Julia's depth first parallel task runtime and so Gaius.jl's routines
 may be fearlessly nested inside multi-threaded julia programs.
 
 Gaius is *not* stable or well tested. Only use it if you're
-adventerous.
+adventurous.
 
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
