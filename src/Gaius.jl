@@ -27,7 +27,7 @@ end
 
 include("pointermatrix.jl")
 include("matmul.jl")
-inclide("block_operations.jl")
+include("block_operations.jl")
 include("kernels.jl")
 
 
