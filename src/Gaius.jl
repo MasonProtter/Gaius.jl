@@ -55,7 +55,7 @@ function check_compatible_sizes(C, A, B)
 end
 
 
-function mul!(C::MatTypes, A::MatTypes, B::MatTypes; block_size=64, sizecheck=true)
+function mul!(C::MatTypes, A::MatTypes, B::MatTypes; block_size=104, sizecheck=true)
     sizecheck && check_compatible_sizes(C, A, B)
     _mul!(C, A, B, block_size÷2)
     C

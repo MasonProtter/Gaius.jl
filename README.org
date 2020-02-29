@@ -50,9 +50,9 @@ julia> @btime Gaius.mul!($C, $A, $B);
 #+END_SRC
 
 You can change the matrix sub-block size by calling ~mul!~ with the
-~size_cutoff~ keyword argument, the default to which is ~64÷2~, i.e. a
-matrix will be split into subblocks along any dimension exceeding 64
-entries (I'll change this interface to be a bit less confusing!)
+~block_size~ keyword argument, the default to which is ~104~, i.e. a
+matrix will be split into subblocks along any dimension exceeding ~104~
+entries.
 
 #+BEGIN_SRC julia
 julia> using Gaius, BenchmarkTools
@@ -89,20 +89,15 @@ and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6
 analogous benchmarks on a machine with an AVX512 instruction set and / or [[https://software.intel.com/en-us/mkl][Intel's MKL]].
 
 
-/Coming Back Soon/ 
-#+BEGIN_COMMENT
 [[file:assets/F64_mul.png]]
 
 [[file:assets/F32_mul.png]]
-#END_COMMENT
 
-# #+BEGIN_CENTER
-# /Note that these are log-log plots/ 
-# #+END_CENTER
+/Note that these are log-log plots/ 
 
-#BEGIN_COMMENT
-Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] for as high up in matrix sizes as I've bothered to test it. The larest I've tested is ~10,000 x 10,000~ arrays at which Gaius beats OpenBLAS by a factor of 50 runtime speed.
-#+END_COMMENT
+
+Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a large range of matrix sizes, but does begin to appreciably fall behind around ~500 x 500~ matrices. I believe there is a large amount of performance left on the table in Gaius.jl and I look forward to beating OpenBLAS for more matrix sizes. 
+
 
 **** Integer Performance
 These benchmarks compare Gaius.jl (on the same machine as above) and
@@ -111,24 +106,18 @@ compare against julia's generic matrix multiplication implementation
 multi-threaded. I would be keenly interested in seeing analogous
 benchmarks on a machine with an AVX512 instruction set.
 
-Graphs coming soon
-#+BEGIN_COMMENT
+
 [[file:assets/I64_mul.png]]
 
 [[file:assets/I32_mul.png]]
-#+END_COMMENT
 
-
-#+BEGIN_CENTER
 /Note that these are log-log plots/ 
-#+END_CENTER
 
 If you find yourself in a high performance situation where you want to
 multiply matrices of integers, I think this provides a compelling
 use-case for Gaius.jl since it will outperform it's competition at
 *any* matrix size and for large matrices will benefit from
 multi-threading.
-
 
 ** Other BLAS Routines
 I have not yet worked on implementing other standard BLAS routines
