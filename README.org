@@ -9,9 +9,8 @@ divide-and-conquer strategy to parallelism, and built on top of the
 Julia's depth first parallel task runtime and so Gaius.jl's routines
 may be fearlessly nested inside multi-threaded julia programs.
 
-Gaius is currently faster than OpenBLAS for all matrix sizes I've
-managed to test and I think there are still a lot of performance gains
-to be had.
+Gaius is *not* stable or well tested. Only use it if you're
+adventerous.
 
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
