@@ -93,8 +93,9 @@ analogous benchmarks on a machine with an AVX512 instruction set and / or [[http
 /Note that these are log-log plots/ 
 #+END_CENTER
 
-Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a very wide useful range of matrix
-sizes, but does eventually start falling behind when it approaches =~600 × ~600= matrices.
+Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] for a gigantic range of matrix sizes,
+though it will eventually fall behind (i'll update this with
+quantitave sizes where it falls begind).
 
 **** Integer Performance
 These benchmarks compare Gaius.jl (on the same machine as above) and
