@@ -55,7 +55,7 @@ function check_compatible_sizes(C, A, B)
 end
 
 
-function mul!(C::MatTypes, A::MatTypes, B::MatTypes; size_cutoff=104÷2, sizecheck=true)
+function mul!(C::MatTypes, A::MatTypes, B::MatTypes; size_cutoff=64÷2, sizecheck=true)
     sizecheck && check_compatible_sizes(C, A, B)
     _mul!(C, A, B, size_cutoff)
     C
