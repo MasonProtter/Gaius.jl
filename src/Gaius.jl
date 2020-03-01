@@ -2,6 +2,7 @@ module Gaius
 
 using LoopVectorization: @avx, VectorizationBase.PackedStridedPointer, VectorizationBase.SparseStridedPointer, VectorizationBase.gep, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.REGISTER_SIZE
 import LoopVectorization: @avx, VectorizationBase.stridedpointer
+using StructArrays: StructArray
 using LinearAlgebra: LinearAlgebra
 
 

@@ -115,7 +115,7 @@ end
 #----------------------------------------------------------------
 # Block Matrix addition-multiplication
 
-@inline function block_mat_mat_mul_add!(C, A, B, sz)
+@inline function block_mat_mat_mul_add!(C, A, B, sz; factor=1)
     @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
@@ -128,24 +128,23 @@ end
     end
     @_sync begin
         @_spawn begin
-            add_gemm_kernel!(C11, A11, B11)
-            #_mul_add!(C11, A11, B11, sz)
-            _mul_add!(C11, A12, B21, sz)
+            add_gemm_kernel!(C11, A11, B11, factor)
+            _mul_add!(C11, A12, B21, sz; factor=factor)
         end
         @_spawn begin
-            _mul_add!(C12, A11, B12, sz)
-            _mul_add!(C12, A12, B22, sz)
+            _mul_add!(C12, A11, B12, sz; factor=factor)
+            _mul_add!(C12, A12, B22, sz; factor=factor)
         end
         @_spawn begin
-            _mul_add!(C21, A21, B11, sz)
-            _mul_add!(C21, A22, B21, sz)
+            _mul_add!(C21, A21, B11, sz; factor=factor)
+            _mul_add!(C21, A22, B21, sz; factor=factor)
         end
-        _mul_add!(C22, A21, B12, sz)
-        _mul_add!(C22, A22, B22, sz)
+        _mul_add!(C22, A21, B12, sz; factor=factor)
+        _mul_add!(C22, A22, B22, sz; factor=factor)
     end
 end
 
-function block_mat_vec_mul_add!(C, A, B, sz)
+function block_mat_vec_mul_add!(C, A, B, sz; factor=1)
     @inbounds @views begin 
         C11 = C[1:sz,     1:end]; 
         C21 = C[sz+1:end, 1:end];
@@ -158,16 +157,15 @@ function block_mat_vec_mul_add!(C, A, B, sz)
     end
     @_sync begin
         @_spawn begin
-            add_gemm_kernel!(C11, A11, B11)
-            #_mul_add!(C11, A11, B11, sz)
-            _mul_add!(C11, A12, B21, sz)
+            add_gemm_kernel!(C11, A11, B11, factor)
+            _mul_add!(C11, A12, B21, sz; factor=factor)
         end
-        _mul_add!(C21, A21, B11, sz)
-        _mul_add!(C21, A22, B21, sz)
+        _mul_add!(C21, A21, B11, sz; factor=factor)
+        _mul_add!(C21, A22, B21, sz; factor=factor)
     end
 end
 
-function block_covec_mat_mul_add!(C, A, B, sz)
+function block_covec_mat_mul_add!(C, A, B, sz; factor=1)
     @inbounds @views begin 
         C11 = C[1:end,    1:sz]; C12 = C[1:end,     sz+1:end] 
 
@@ -178,16 +176,15 @@ function block_covec_mat_mul_add!(C, A, B, sz)
     end
     @_sync begin
         @_spawn begin
-            add_gemm_kernel!(C11, A11, B11)
-            #_mul_add!(C11, A11, B11, sz)
-            _mul_add!(C11, A12, B21, sz)
+            add_gemm_kernel!(C11, A11, B11, factor)
+            _mul_add!(C11, A12, B21, sz; factor=factor)
         end
-        _mul_add!(C12, A11, B12, sz)
-        _mul_add!(C12, A12, B22, sz)
+        _mul_add!(C12, A11, B12, sz; factor=factor)
+        _mul_add!(C12, A12, B22, sz; factor=factor)
     end
 end
 
-function block_vec_covec_mul_add!(C, A, B, sz)
+function block_vec_covec_mul_add!(C, A, B, sz; factor=1)
     @inbounds @views begin 
         C11 = C[1:sz,     1:sz]; C12 = C[1:sz,     sz+1:end] 
         C21 = C[sz+1:end, 1:sz]; C22 = C[sz+1:end, sz+1:end]
@@ -199,27 +196,25 @@ function block_vec_covec_mul_add!(C, A, B, sz)
     end
     @_sync begin
         @_spawn begin
-            add_gemm_kernel!(C11, A11, B11)
-            #_mul_add!(C11, A11, B11, sz)
+            add_gemm_kernel!(C11, A11, B11, factor)
         end
         @_spawn begin
-            _mul_add!(C12, A11, B12, sz)
+            _mul_add!(C12, A11, B12, sz; factor=factor)
         end
         @_spawn begin
-            _mul_add!(C21, A21, B11, sz)
+            _mul_add!(C21, A21, B11, sz; factor=factor)
         end
-        _mul_add!(C22, A21, B12, sz)
+        _mul_add!(C22, A21, B12, sz; factor=factor)
     end
 end
 
-function block_covec_vec_mul_add!(C, A, B, sz)
+function block_covec_vec_mul_add!(C, A, B, sz; factor=1)
     @inbounds @views begin 
         A11 = A[1:end,    1:sz]; A12 = A[1:end,    sz+1:end] 
 
         B11 = B[1:sz,     1:end];
         B21 = B[sz+1:end, 1:end];
     end
-    add_gemm_kernel!(C, A11, B11)
-    #_mul_add!(C, A11, B11, sz)
-    _mul_add!(C, A12, B21, sz)
+    add_gemm_kernel!(C, A11, B11, factor)
+    _mul_add!(C, A12, B21, sz; factor=factor)
 end
