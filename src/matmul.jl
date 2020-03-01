@@ -18,7 +18,7 @@ end
 
 function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T}; block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
-    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size >>> 1)
+    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size)
     C
 end
 
@@ -38,18 +38,35 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
     C
 end
 
+
+function mul!(C::StructArray{Rational{T}, 2}, A::StructArray{Rational{T}, 2},
+              B::StructArray{Rational{T}, 2};
+              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+    sizecheck && check_compatible_sizes(C, A, B)
+    GC.@preserve C A B begin
+        Cnum, Cden = PtrMatrix(C.num), PtrMatrix(C.den)
+        Anum, Aden = PtrMatrix(A.num), PtrMatrix(A.den)
+        Bnum, Bden = PtrMatrix(B.num), PtrMatrix(B.den)
+        
+        _mul!(Cnum, Anum, Bnum, block_size)
+        _mul!(Cden, Aden, Bden, block_size)
+    end
+    C
+end
+
+
 function _mul!(C, A, B, sz)
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
     
-    if n >= 2sz && m >= 2sz && k >= 2sz
+    if n >= sz+8 && m >= sz+8 && k >= sz+8
         block_mat_mat_mul!(C, A, B, sz)
-    elseif n >= 2sz && k >= 2sz && m <  2sz
+    elseif n >= sz+8 && k >= sz+8 && m <  sz+8
         block_mat_vec_mul!(C, A, B, sz)
-    elseif n <  2sz && k >= 2sz && m >= 2sz
+    elseif n <  sz+8 && k >= sz+8 && m >= sz+8
         block_covec_mat_mul!(C, A, B, sz)
-    elseif n >= 2sz && k <  2sz && m >= 2sz
+    elseif n >= sz+8 && k <  sz+8 && m >= sz+8
         block_vec_covec_mul!(C, A, B, sz)
-    elseif n <  2sz && k >= 2sz && m <  2sz
+    elseif n <  sz+8 && k >= sz+8 && m <  sz+8
         block_covec_vec_mul!(C, A, B, sz)
     else
         gemm_kernel!(C, A, B)
@@ -58,15 +75,15 @@ end
 
 function _mul_add!(C, A, B, sz; factor=1)
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
-    if n >= 2sz && m >= 2sz && k >= 2sz
-        block_mat_mat_mul_add!(C, A, B, sz;   factor=factor)
-    elseif n >= 2sz && k >= 2sz && m <  2sz
-        block_mat_vec_mul_add!(C, A, B, sz;   factor=factor)
-    elseif n <  2sz && k >= 2sz && m >= 2sz
-        block_covec_mat_mul_add!(C, A, B, sz; factor=factor)
-    elseif n >= 2sz && k <  2sz && m >= 2sz
-        block_vec_covec_mul_add!(C, A, B, sz; factor=factor)
-    elseif n <  2sz && k >= 2sz && m <  2sz
+    if n >= sz+8 && m >= sz+8 && k >= sz+8
+        block_mat_mat_mul_add!(C, A, B, sz)
+    elseif n >= sz+8 && k >= sz+8 && m <  sz+8
+        block_mat_vec_mul_add!(C, A, B, sz)
+    elseif n <  sz+8 && k >= sz+8 && m >= sz+8
+        block_covec_mat_mul_add!(C, A, B, sz)
+    elseif n >= sz+8 && k <  sz+8 && m >= sz+8
+        block_vec_covec_mul_add!(C, A, B, sz)
+    elseif n <  sz+8 && k >= sz+8 && m <  sz+8
         block_covec_vec_mul_add!(C, A, B, sz; factor=factor)
     else
         add_gemm_kernel!(C, A, B, factor)
