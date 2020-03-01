@@ -86,6 +86,8 @@ block size based on the size of the input matrices.
 
 The size heuristics I use are likely not yet optimal for everyone's
 machines.
+#+HTML: </details>
+#+HTML: </p>
 
 *** Complex Numbers
 #+HTML: <details><summary>Click me!</summary>
