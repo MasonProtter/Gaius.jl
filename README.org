@@ -15,15 +15,15 @@ adventurous.
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
 between matrices of types ~Matrix{<:Union{Float64, Float32, Int64,
-Int32}}~, though I have plans to provide support for ~Complex~
-numbers as well as other commonly encountered numeric ~struct~ types
-such as ~Rational~ and ~Dual~ numbers.
+Int32, Int16}}~, and ~StructArray{Complex}~. support for other other
+commonly encountered numeric ~struct~ types such as ~Rational~ and
+~Dual~ numbers is forthcoming.
 
 *** Using Gaius.jl 
 Gaius.jl does not export any functions, but it internally defines
 ~Gaius.:(*)~ and ~Gaius.mul!~ which do out-of-place and in-place
 matrix multiplication on matrices of type ~Matrix{<:Union{Float64,
-Float32, Int64, Int32}}~ respectively.
+Float32, Int64, Int32, Int16}}~ respectively.
 
 ~Gaius.:(*)~ and ~Gaius.mul!~ are *not* equal to ~Base.:(*)~ and
 ~LinearAlgebra.mul!~ though ~Gaius~'s definitions do fall back on
@@ -68,6 +68,33 @@ julia> @btime let * = Gaius.:(*)
   30.875 μs (133 allocations: 89.11 KiB)
 #+END_SRC
 
+*** Complex Numbers
+Gaius.jl supports the multiplication of matrices of complex numbers,
+but they must first by converted explicity to structs of arrays using
+StructArrays.jl (otherwise the multiplication will be done by OpenBLAS):
+#+BEGIN_SRC julia
+julia> using Gaius, StructArrays
+
+julia> begin
+           n = 150
+           A = randn(ComplexF64, n, n)
+           B = randn(ComplexF64, n, n)
+           C = zeros(ComplexF64, n, n)
+
+
+           SA =  StructArray(A)
+           SB =  StructArray(B)
+           SC = StructArray(C)
+
+           @btime Gaius.mul!($SC, $SA, $SB)
+           @btime       mul!($C, $A, $B)
+           SC ≈ C
+       end 
+   515.587 μs (80 allocations: 10.53 KiB)
+   546.481 μs (0 allocations: 0 bytes)
+ true
+#+END_SRC
+
 *** Benchmarks 
 **** Floating Point Performance 
 The following benchmarks were run on this 
@@ -87,7 +114,6 @@ Environment:
 and compared to [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] running with ~6~ threads
 (~BLAS.set_num_threads(6)~). I would be keenly interested in seeing
 analogous benchmarks on a machine with an AVX512 instruction set and / or [[https://software.intel.com/en-us/mkl][Intel's MKL]].
-
 
 [[file:assets/F64_mul.png]]
 
