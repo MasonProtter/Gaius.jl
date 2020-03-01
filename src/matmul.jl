@@ -20,10 +20,10 @@ function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     if isnothing(block_size)
-        if size(C, 1) >= 104
-            block_size = 96
+        if size(C, 1) >= 72
+            block_size = 48
         else
-            block_size = 64
+            block_size = 32
         end
     end
     GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size)
@@ -35,10 +35,10 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
     sizecheck && check_compatible_sizes(C, A, B)
     
     if isnothing(block_size)
-        if size(C, 1) >= 104
-            block_size = 96
+        if size(C, 1) >= 72
+            block_size = 48
         else
-            block_size = 64
+            block_size = 32
         end
     end
     
@@ -62,10 +62,10 @@ function mul!(C::StructArray{Rational{T}, 2}, A::StructArray{Rational{T}, 2},
     sizecheck && check_compatible_sizes(C, A, B)
 
     if isnothing(block_size)
-        if size(C, 1) >= 104
-            block_size = 96
+        if size(C, 1) >= 72
+            block_size = 48
         else
-            block_size = 64
+            block_size = 32
         end
     end
     
