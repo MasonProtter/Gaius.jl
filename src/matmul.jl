@@ -31,7 +31,7 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
         Bre, Bim = PtrMatrix(B.re), PtrMatrix(B.im)
         
         _mul!(    Cre, Are, Bre,  block_size >>> 1)            # C.re = A.re * B.re
-        _mul_add!(Cre, Aim, Bim,  block_size >>> 1; factor=-1) # C.re = C.re - A.im * B.im
+        _mul_add!(Cre, Aim, Bim,  block_size >>> 1, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    Cim, Are, Bim,  block_size >>> 1)            # C.im = A.re * B.im
         _mul_add!(Cim, Aim, Bre,  block_size >>> 1)            # C.im = C.im + A.im * B.re
     end
@@ -56,19 +56,19 @@ function _mul!(C, A, B, sz)
     end
 end
 
-function _mul_add!(C, A, B, sz; factor=1)
+function _mul_add!(C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
     if n >= 2sz && m >= 2sz && k >= 2sz
-        block_mat_mat_mul_add!(C, A, B, sz;   factor=factor)
+        block_mat_mat_mul_add!(C, A, B, sz,   Val(factor))
     elseif n >= 2sz && k >= 2sz && m <  2sz
-        block_mat_vec_mul_add!(C, A, B, sz;   factor=factor)
+        block_mat_vec_mul_add!(C, A, B, sz,   Val(factor))
     elseif n <  2sz && k >= 2sz && m >= 2sz
-        block_covec_mat_mul_add!(C, A, B, sz; factor=factor)
+        block_covec_mat_mul_add!(C, A, B, sz, Val(factor))
     elseif n >= 2sz && k <  2sz && m >= 2sz
-        block_vec_covec_mul_add!(C, A, B, sz; factor=factor)
+        block_vec_covec_mul_add!(C, A, B, sz, Val(factor))
     elseif n <  2sz && k >= 2sz && m <  2sz
-        block_covec_vec_mul_add!(C, A, B, sz; factor=factor)
+        block_covec_vec_mul_add!(C, A, B, sz, Val(factor))
     else
-        add_gemm_kernel!(C, A, B, factor)
+        add_gemm_kernel!(C, A, B, Val(factor))
     end
 end
