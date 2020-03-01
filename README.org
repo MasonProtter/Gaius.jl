@@ -43,16 +43,11 @@ julia> using Gaius, BenchmarkTools, LinearAlgebra
 julia> A, B, C = rand(104, 104), rand(104, 104), zeros(104, 104);
 
 julia> @btime mul!($C, $A, $B);
-  42.364 μs (0 allocations: 0 bytes)
+  68.529 μs (0 allocations: 0 bytes)
 
 julia> @btime Gaius.mul!($C, $A, $B);
-  30.064 μs (131 allocations: 4.53 KiB)
+  31.220 μs (80 allocations: 10.20 KiB)
 #+END_SRC
-
-You can change the matrix sub-block size by calling ~mul!~ with the
-~block_size~ keyword argument, the default to which is ~104~, i.e. a
-matrix will be split into subblocks along any dimension exceeding ~104~
-entries.
 
 #+BEGIN_SRC julia
 julia> using Gaius, BenchmarkTools
@@ -60,13 +55,35 @@ julia> using Gaius, BenchmarkTools
 julia> A, B = rand(104, 104), rand(104, 104);
 
 julia> @btime $A * $B;
-  45.657 μs (2 allocations: 84.58 KiB)
+  68.949 μs (2 allocations: 84.58 KiB)
 
 julia> @btime let * = Gaius.:(*)
            $A * $B
        end;
-  30.875 μs (133 allocations: 89.11 KiB)
+  32.950 μs (82 allocations: 94.78 KiB)
+
+julia> versioninfo()
+Julia Version 1.4.0-rc2.0
+Commit b99ed72c95* (2020-02-24 16:51 UTC)
+Platform Info:
+  OS: Linux (x86_64-pc-linux-gnu)
+  CPU: AMD Ryzen 5 2600 Six-Core Processor
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-8.0.1 (ORCJIT, znver1)
+Environment:
+  JULIA_NUM_THREADS = 6
 #+END_SRC
+
+
+Multi-threading in Gaius.jl works by recursively splitting matrices
+into sub-blocks to operate on. You can change the matrix sub-block
+size by calling ~mul!~ with the ~block_size~ keyword argument. If left
+unspecified, Gaius will use a (very rough) heuristic to choose a good
+block size based on the size of the input matrices. 
+
+The size heuristics I use are likely not yet optimal for everyone's
+machines.
 
 *** Complex Numbers
 Gaius.jl supports the multiplication of matrices of complex numbers,
@@ -122,15 +139,25 @@ analogous benchmarks on a machine with an AVX512 instruction set and / or [[http
 /Note that these are log-log plots/ 
 
 
-Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a large range of matrix sizes, but does begin to appreciably fall behind around ~500 x 500~ matrices. I believe there is a large amount of performance left on the table in Gaius.jl and I look forward to beating OpenBLAS for more matrix sizes. 
+Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a large range of matrix sizes, but
+does begin to appreciably fall behind around ~800 x 800~ matrices for
+~Float64~ and ~650 x 650~ matrices for ~Float32~. I believe there is a
+large amount of performance left on the table in Gaius.jl and I look
+forward to beating OpenBLAS for more matrix sizes.
 
+**** Complex Floating Point Performance
+Here is Gaius operating on ~Complex{Float64}~ structs-of-arrays
+competeing relatively evenly against OpenBLAS operating on ~Complex{Float64}~ arrays-of-structs:
+
+[[file:assets/C64_mul.png]]
+
+I think with some work, we can do much better. 
 
 **** Integer Performance
 These benchmarks compare Gaius.jl (on the same machine as above) and
 compare against julia's generic matrix multiplication implementation
 (OpenBLAS does not provide integer mat-mul) which is not
-multi-threaded. I would be keenly interested in seeing analogous
-benchmarks on a machine with an AVX512 instruction set.
+multi-threaded.
 
 
 [[file:assets/I64_mul.png]]
@@ -138,6 +165,9 @@ benchmarks on a machine with an AVX512 instruction set.
 [[file:assets/I32_mul.png]]
 
 /Note that these are log-log plots/ 
+
+Benchmarks performed on am achine with the AVX512 instruction set show
+an [[https://github.com/chriselrod/LoopVectorization.jl][even greater performance gain.]]
 
 If you find yourself in a high performance situation where you want to
 multiply matrices of integers, I think this provides a compelling

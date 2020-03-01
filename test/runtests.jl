@@ -8,8 +8,8 @@ using StructArrays
         @testset "($n × $k) × ($k × $m)" begin
             C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m))) 
             C2 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m))) 
-            A  = StructArray{ComplexF64}((randn(n, k), randn(n, m))) 
-            B  = StructArray{ComplexF64}((randn(k, m), randn(n, m)))
+            A  = StructArray{ComplexF64}((randn(n, k), randn(n, k))) 
+            B  = StructArray{ComplexF64}((randn(k, m), randn(k, m)))
            
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
@@ -20,8 +20,8 @@ using StructArrays
         @testset "($n × $k) × ($k × $m)" begin
             C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m))) 
             C2 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m))) 
-            A  = StructArray{ComplexF64}((randn(n, k), randn(n, m))) 
-            B  = StructArray{ComplexF64}((randn(k, m), randn(n, m)))
+            A  = StructArray{ComplexF64}((randn(n, k), randn(n, k))) 
+            B  = StructArray{ComplexF64}((randn(k, m), randn(k, m)))
            
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
