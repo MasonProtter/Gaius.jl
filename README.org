@@ -15,11 +15,13 @@ adventurous.
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
 between matrices of types ~Matrix{<:Union{Float64, Float32, Int64,
-Int32, Int16}}~, and ~StructArray{Complex}~. support for other other
+Int32, Int16}}~, and ~StructArray{Complex}~. Support for other other
 commonly encountered numeric ~struct~ types such as ~Rational~ and
-~Dual~ numbers is forthcoming.
+~Dual~ numbers is planned.
 
 *** Using Gaius.jl 
+#+HTML: <details><summary>Click me!</summary>
+#+HTML: <p>
 Gaius.jl does not export any functions, but it internally defines
 ~Gaius.:(*)~ and ~Gaius.mul!~ which do out-of-place and in-place
 matrix multiplication on matrices of type ~Matrix{<:Union{Float64,
@@ -86,6 +88,8 @@ The size heuristics I use are likely not yet optimal for everyone's
 machines.
 
 *** Complex Numbers
+#+HTML: <details><summary>Click me!</summary>
+#+HTML: <p>
 Gaius.jl supports the multiplication of matrices of complex numbers,
 but they must first by converted explicity to structs of arrays using
 StructArrays.jl (otherwise the multiplication will be done by OpenBLAS):
@@ -111,9 +115,12 @@ julia> begin
    546.481 μs (0 allocations: 0 bytes)
  true
 #+END_SRC
-
+#+HTML: </details>
+#+HTML: </p>
 *** Benchmarks 
 **** Floating Point Performance 
+#+HTML: <details><summary>Click me!</summary>
+#+HTML: <p>
 The following benchmarks were run on this 
 #+BEGIN_SRC julia
 julia> versioninfo()
@@ -144,16 +151,22 @@ does begin to appreciably fall behind around ~800 x 800~ matrices for
 ~Float64~ and ~650 x 650~ matrices for ~Float32~. I believe there is a
 large amount of performance left on the table in Gaius.jl and I look
 forward to beating OpenBLAS for more matrix sizes.
-
+#+HTML: </details>
+#+HTML: </p>
 **** Complex Floating Point Performance
+#+HTML: <details><summary>Click me!</summary>
+#+HTML: <p>
 Here is Gaius operating on ~Complex{Float64}~ structs-of-arrays
 competeing relatively evenly against OpenBLAS operating on ~Complex{Float64}~ arrays-of-structs:
 
 [[file:assets/C64_mul.png]]
 
 I think with some work, we can do much better. 
-
+#+HTML: </details>
+#+HTML: </p>
 **** Integer Performance
+#+HTML: <details><summary>Click me!</summary>
+#+HTML: <p>
 These benchmarks compare Gaius.jl (on the same machine as above) and
 compare against julia's generic matrix multiplication implementation
 (OpenBLAS does not provide integer mat-mul) which is not
@@ -175,6 +188,8 @@ use-case for Gaius.jl since it will outperform it's competition at
 *any* matrix size and for large matrices will benefit from
 multi-threading.
 
+#+HTML: </details>
+#+HTML: </p>
 ** Other BLAS Routines
 I have not yet worked on implementing other standard BLAS routines
 with this strategy, but doing so should be relatively straightforward.
