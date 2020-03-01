@@ -20,8 +20,8 @@ function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     if isnothing(block_size)
-        if size(C, 1) >= 72
-            block_size = 48
+        if 2size(C, 1) >= 3DEFAULT_BLOCK_SIZE
+            block_size = DEFAULT_BLOCK_SIZE
         else
             block_size = 32
         end
@@ -56,11 +56,10 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
         # Cre, Cim = C.re, C.im
         # Are, Aim = A.re, A.im
         # Bre, Bim = B.re, B.im
-        
-        _mul!(    Cre, Are, Bre,  block_size)            # C.re = A.re * B.re
-        _mul_add!(Cre, Aim, Bim,  block_size; factor=-1) # C.re = C.re - A.im * B.im
-        _mul!(    Cim, Are, Bim,  block_size)            # C.im = A.re * B.im
-        _mul_add!(Cim, Aim, Bre,  block_size)            # C.im = C.im + A.im * B.re
+        _mul!(    Cre, Are, Bre,  block_size)          # C.re = A.re * B.re
+        _mul_add!(Cre, Aim, Bim,  block_size, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    Cim, Are, Bim,  block_size)          # C.im = A.re * B.im
+        _mul_add!(Cim, Aim, Bre,  block_size)          # C.im = C.im + A.im * B.re
     end
     C
 end
@@ -120,19 +119,19 @@ function _mul!(C, A, B, sz)
     end
 end
 
-function _mul_add!(C, A, B, sz; factor=1)
+function _mul_add!(C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
     if n >= sz+8 && m >= sz+8 && k >= sz+8
-        block_mat_mat_mul_add!(C, A, B, sz; factor=factor)
+        block_mat_mat_mul_add!(C, A, B, sz, Val(factor))
     elseif n >= sz+8 && k >= sz+8 && m <  sz+8
-        block_mat_vec_mul_add!(C, A, B, sz; factor=factor)
+        block_mat_vec_mul_add!(C, A, B, sz, Val(factor))
     elseif n <  sz+8 && k >= sz+8 && m >= sz+8
-        block_covec_mat_mul_add!(C, A, B, sz; factor=factor)
+        block_covec_mat_mul_add!(C, A, B, sz, Val(factor))
     elseif n >= sz+8 && k <  sz+8 && m >= sz+8
-        block_vec_covec_mul_add!(C, A, B, sz; factor=factor)
+        block_vec_covec_mul_add!(C, A, B, sz, Val(factor))
     elseif n <  sz+8 && k >= sz+8 && m <  sz+8
-        block_covec_vec_mul_add!(C, A, B, sz; factor=factor)
+        block_covec_vec_mul_add!(C, A, B, sz, Val(factor))
     else
-        add_gemm_kernel!(C, A, B, factor)
+        add_gemm_kernel!(C, A, B, Val(factor))
     end
 end
