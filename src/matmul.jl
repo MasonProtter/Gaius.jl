@@ -16,8 +16,16 @@ function (*)(A::MatTypes, B::MatTypes)
     C
 end
 
-function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T}; block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
+              block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
+    if isnothing(block_size)
+        if size(C, 1) >= 104
+            block_size = 96
+        else
+            block_size = 64
+        end
+    end
     GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size)
     C
 end
@@ -25,15 +33,24 @@ end
 function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2};
               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
+    
+    if isnothing(block_size)
+        if size(C, 1) >= 104
+            block_size = 96
+        else
+            block_size = 64
+        end
+    end
+    
     GC.@preserve C A B begin
         Cre, Cim = PtrMatrix(C.re), PtrMatrix(C.im)
         Are, Aim = PtrMatrix(A.re), PtrMatrix(A.im)
         Bre, Bim = PtrMatrix(B.re), PtrMatrix(B.im)
         
-        _mul!(    Cre, Are, Bre,  block_size >>> 1)            # C.re = A.re * B.re
-        _mul_add!(Cre, Aim, Bim,  block_size >>> 1; factor=-1) # C.re = C.re - A.im * B.im
-        _mul!(    Cim, Are, Bim,  block_size >>> 1)            # C.im = A.re * B.im
-        _mul_add!(Cim, Aim, Bre,  block_size >>> 1)            # C.im = C.im + A.im * B.re
+        _mul!(    Cre, Are, Bre,  block_size)            # C.re = A.re * B.re
+        _mul_add!(Cre, Aim, Bim,  block_size; factor=-1) # C.re = C.re - A.im * B.im
+        _mul!(    Cim, Are, Bim,  block_size)            # C.im = A.re * B.im
+        _mul_add!(Cim, Aim, Bre,  block_size)            # C.im = C.im + A.im * B.re
     end
     C
 end
@@ -43,6 +60,15 @@ function mul!(C::StructArray{Rational{T}, 2}, A::StructArray{Rational{T}, 2},
               B::StructArray{Rational{T}, 2};
               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
+
+    if isnothing(block_size)
+        if size(C, 1) >= 104
+            block_size = 96
+        else
+            block_size = 64
+        end
+    end
+    
     GC.@preserve C A B begin
         Cnum, Cden = PtrMatrix(C.num), PtrMatrix(C.den)
         Anum, Aden = PtrMatrix(A.num), PtrMatrix(A.den)
