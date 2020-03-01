@@ -20,8 +20,8 @@ function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     if isnothing(block_size)
-        if size(C, 1) >= 72
-            block_size = 48
+        if 2size(C, 1) >= 3DEFAULT_BLOCK_SIZE
+            block_size = DEFAULT_BLOCK_SIZE
         else
             block_size = 32
         end
