@@ -37,9 +37,14 @@ end
             C2 = zeros(n, m)
             A  = randn(n, k)
             B  = randn(k, m)
-           
+            At = copy(A')
+            Bt = copy(B')
+
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
+            fill!(C1, NaN); @test Gaius.mul!(C1, At', B)   ≈ C2
+            fill!(C1, NaN); @test Gaius.mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, NaN); @test Gaius.mul!(C1, At', Bt') ≈ C2
         end
     end
     for sz ∈ [10, 50, 100, 200, 400, 1000]
@@ -49,9 +54,14 @@ end
             C2 = zeros(n, m)
             A  = randn(n, k)
             B  = randn(k, m)
+            At = copy(A')
+            Bt = copy(B')
            
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
+            fill!(C1, NaN); @test Gaius.mul!(C1, At', B)   ≈ C2
+            fill!(C1, NaN); @test Gaius.mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, NaN); @test Gaius.mul!(C1, At', Bt') ≈ C2
         end
     end
 end
@@ -64,9 +74,14 @@ end
             C2 = zeros(Float32, n, m)
             A  = randn(Float32, n, k)
             B  = randn(Float32, k, m)
+            At = copy(A')
+            Bt = copy(B')
            
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
+            fill!(C1, NaN32); @test Gaius.mul!(C1, At', B)   ≈ C2
+            fill!(C1, NaN32); @test Gaius.mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, NaN32); @test Gaius.mul!(C1, At', Bt') ≈ C2
         end
     end
 end
@@ -80,9 +95,14 @@ end
             C2 = zeros(Int, n, m)
             A  = rand(-100:100, n, k)
             B  = rand(-100:100, k, m)
+            At = copy(A')
+            Bt = copy(B')
            
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
+            fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, At', B)   ≈ C2
+            fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, At', Bt') ≈ C2
         end
     end
 end
@@ -96,9 +116,14 @@ end
             C2 = zeros(Int32, n, m)
             A  = rand(Int32.(-100:100), n, k)
             B  = rand(Int32.(-100:100), k, m)
-           
+            At = copy(A')
+            Bt = copy(B')
+
             @test Gaius.mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test Gaius.:(*)(A, B) ≈ C1
+            fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, At', B)   ≈ C2
+            fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, At', Bt') ≈ C2
         end
     end
 end
