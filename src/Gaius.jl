@@ -1,14 +1,16 @@
 module Gaius
 
-using LoopVectorization: @avx, VectorizationBase.PackedStridedPointer, VectorizationBase.SparseStridedPointer, VectorizationBase.gep, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.REGISTER_SIZE
+using LoopVectorization: @avx, VectorizationBase.AbstractStridedPointer, VectorizationBase.gesp, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.AVX512F
 import LoopVectorization: @avx, VectorizationBase.stridedpointer
 using StructArrays: StructArray
 using LinearAlgebra: LinearAlgebra
 
 
-const DEFAULT_BLOCK_SIZE = REGISTER_SIZE == 64 ? 64 : 32
+const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
 const Eltypes  = Union{Float64, Float32, Int64, Int32, Int16}
-const MatTypes{T <: Eltypes} = Union{Matrix{T}, SubArray{T, 2, <: Array}}
+const MatTypesC{T <: Eltypes} = Union{Matrix{T}, SubArray{T, 2, <: Array}} # C for Column Major
+const MatTypesR{T <: Eltypes} = Union{LinearAlgebra.Adjoint{T,<:MatTypesC{T}}, LinearAlgebra.Transpose{T,<:MatTypesC{T}}} # R for Row Major
+const MatTypes{T <: Eltypes} = Union{MatTypesC{T}, MatTypesR{T}}
 
 # Note this does not support changing the number of threads at runtime
 macro _spawn(ex)
