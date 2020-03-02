@@ -7,6 +7,7 @@ using LinearAlgebra: LinearAlgebra
 
 
 const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
+
 const Eltypes  = Union{Float64, Float32, Int64, Int32, Int16}
 const MatTypesC{T <: Eltypes} = Union{Matrix{T}, SubArray{T, 2, <: Array}} # C for Column Major
 const MatTypesR{T <: Eltypes} = Union{LinearAlgebra.Adjoint{T,<:MatTypesC{T}}, LinearAlgebra.Transpose{T,<:MatTypesC{T}}} # R for Row Major
