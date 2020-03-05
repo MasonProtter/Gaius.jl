@@ -16,17 +16,16 @@ function (*)(A::MatTypes, B::MatTypes)
     C
 end
 
+choose_block_size(C::AbstractMatrix, ::Nothing) = size(C, 1) >= (3DEFAULT_BLOCK_SIZE) >>> 1 ? DEFAULT_BLOCK_SIZE : 32
+choose_block_size(::Any, block_size::Integer) = block_size
+
 function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
-    if isnothing(block_size)
-        if 2size(C, 1) >= 3DEFAULT_BLOCK_SIZE
-            block_size = DEFAULT_BLOCK_SIZE
-        else
-            block_size = 32
-        end
-    end
-    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), block_size)
+
+    _block_size = choose_block_size(C, block_size)
+
+    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), _block_size)
     C
 end
 
@@ -41,13 +40,7 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     
-    if isnothing(block_size)
-        if 2size(C, 1) >= 3DEFAULT_BLOCK_SIZE
-            block_size = DEFAULT_BLOCK_SIZE
-        else
-            block_size = 32
-        end
-    end
+    _block_size = choose_block_size(C, block_size)
     
     GC.@preserve C A B begin
         Cre, Cim = PtrMatrix(C.re), PtrMatrix(C.im)
@@ -56,10 +49,10 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
         # Cre, Cim = C.re, C.im
         # Are, Aim = A.re, A.im
         # Bre, Bim = B.re, B.im
-        _mul!(    Cre, Are, Bre,  block_size)          # C.re = A.re * B.re
-        _mul_add!(Cre, Aim, Bim,  block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    Cim, Are, Bim,  block_size)          # C.im = A.re * B.im
-        _mul_add!(Cim, Aim, Bre,  block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
+        _mul_add!(Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
+        _mul_add!(Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
     end
     C
 end
