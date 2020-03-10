@@ -22,32 +22,21 @@ commonly encountered numeric ~struct~ types such as ~Rational~ and
 *** Using Gaius.jl 
 #+HTML: <details><summary>Click me!</summary>
 #+HTML: <p>
-Gaius.jl does not export any functions, but it internally defines
-~Gaius.:(*)~ and ~Gaius.mul!~ which do out-of-place and in-place
-matrix multiplication on matrices of type ~Matrix{<:Union{Float64,
-Float32, Int64, Int32, Int16}}~ respectively.
-
-~Gaius.:(*)~ and ~Gaius.mul!~ are *not* equal to ~Base.:(*)~ and
-~LinearAlgebra.mul!~ though ~Gaius~'s definitions do fall back on
-those definitions for types other than those specialized matrix types.
-
-If you do
-#+BEGIN_SRC julia
-using Gaius: *, mul! 
-#+END_SRC
-in a scope before using ~*~ or ~mul!~ in that scope, then ~Gaius.jl~'s
-definitions will /shadow/ the regular ones. This is not type piracy
-and these shadowed definitions will not propagate into enclosing scopes.
+Gaius.jl exports the functions ~blocked_mul~ and
+~blocked_mul!~. ~blocked_mul~ is to be used like the regular ~*~
+operator between two matrices whereas ~bloked_mul!~ takes in three
+matrices ~C, A, B~ and stores ~A*B~ in ~C~ overwriting the contents of
+~C~.
 
 #+BEGIN_SRC julia
 julia> using Gaius, BenchmarkTools, LinearAlgebra
 
 julia> A, B, C = rand(104, 104), rand(104, 104), zeros(104, 104);
 
-julia> @btime mul!($C, $A, $B);
+julia> @btime mul!($C, $A, $B); # from LinearAlgebra
   68.529 μs (0 allocations: 0 bytes)
 
-julia> @btime Gaius.mul!($C, $A, $B);
+julia> @btime blocked_mul!($C, $A, $B); #from Gaius
   31.220 μs (80 allocations: 10.20 KiB)
 #+END_SRC
 
@@ -59,7 +48,7 @@ julia> A, B = rand(104, 104), rand(104, 104);
 julia> @btime $A * $B;
   68.949 μs (2 allocations: 84.58 KiB)
 
-julia> @btime let * = Gaius.:(*)
+julia> @btime let * = Gaius.blocked_mul # Locally use Gaius.blocked_mul as * operator.
            $A * $B
        end;
   32.950 μs (82 allocations: 94.78 KiB)
@@ -109,8 +98,8 @@ julia> begin
            SB =  StructArray(B)
            SC = StructArray(C)
 
-           @btime Gaius.mul!($SC, $SA, $SB)
-           @btime       mul!($C, $A, $B)
+           @btime blocked_mul!($SC, $SA, $SB)
+           @btime         mul!($C, $A, $B)
            SC ≈ C
        end 
    515.587 μs (80 allocations: 10.53 KiB)
@@ -201,12 +190,13 @@ with this strategy, but doing so should be relatively straightforward.
 
     -Gaius Julius Caesar
 
-If you use only the functions ~Gaius.mul!~ and ~Gaius.:(*)~, automatic
-array size-checking will occur before the matrix multiplication
-begins. This can be turned off in ~mul!~ by calling ~Gaius.mul!(C, A,
-B, sizecheck=false)~, in which case no sizechecks will occur on the
-arrays before the matrix multiplication occurs and all sorts of bad,
-segfaulty things can happen.
+If you use only the functions ~Gaius.blocked_mul!~ and
+~Gaius.blocked_mul~, automatic array size-checking will occur before
+the matrix multiplication begins. This can be turned off in
+~blocked_mul!~ by calling ~Gaius.mul!(C, A, B, sizecheck=false)~, in
+which case no sizechecks will occur on the arrays before the matrix
+multiplication occurs and all sorts of bad, segfaulty things can
+happen.
 
 All other functions in this package are to be considered /internal/
 and should not be expected to check for safety or obey the law. The

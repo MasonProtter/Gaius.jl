@@ -5,6 +5,7 @@ import LoopVectorization: @avx, VectorizationBase.stridedpointer
 using StructArrays: StructArray
 using LinearAlgebra: LinearAlgebra
 
+export blocked_mul, blocked_mul!
 
 const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
 

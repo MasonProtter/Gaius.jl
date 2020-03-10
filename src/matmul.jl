@@ -6,20 +6,17 @@ function check_compatible_sizes(C, A, B)
     nothing
 end
 
-mul!(args...) = LinearAlgebra.mul!(args...)
-(*)(args...)  = Base.:(*)(args...)
-
-function (*)(A::MatTypes, B::MatTypes)
+function blocked_mul(A::MatTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Matrix{T}(undef, size(A,1), size(B,2))
-    mul!(C, A, B)
+    blocked_mul!(C, A, B)
     C
 end
 
 choose_block_size(C::AbstractMatrix, ::Nothing) = size(C, 1) >= (3DEFAULT_BLOCK_SIZE) >>> 1 ? DEFAULT_BLOCK_SIZE : 32
 choose_block_size(::Any, block_size::Integer) = block_size
 
-function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
+function blocked_mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
@@ -29,14 +26,14 @@ function mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
     C
 end
 
-function (*)(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
+function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
     C = StructArray{Complex{T}}((Matrix{T}(undef, size(A, 1), size(B,2)),
                                  Matrix{T}(undef, size(A, 1), size(B,2))))
-    mul!(C, A, B)
+    blocked_mul!(C, A, B)
     C
 end
 
-function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2};
+function blocked_mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2};
               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     
@@ -57,46 +54,8 @@ function mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::S
     C
 end
 
-
-# function (*)(A::StructArray{Rational{T}, 2}, B::StructArray{Rational{T}, 2}) where {T <: Eltypes}
-#     C = StructArray{Rational{T}}((Matrix{T}(undef, size(A, 1), size(B,2)),
-#                                   Matrix{T}(undef, size(A, 1), size(B,2))))
-#     mul!(C, A, B)
-#     C
-# end
-
-# function mul!(C::StructArray{Rational{T}, 2}, A::StructArray{Rational{T}, 2},
-#               B::StructArray{Rational{T}, 2};
-#               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
-#     sizecheck && check_compatible_sizes(C, A, B)
-
-#     if isnothing(block_size)
-#         if size(C, 1) >= 72
-#             block_size = 48
-#         else
-#             block_size = 32
-#         end
-#     end
-    
-#     GC.@preserve C A B begin
-#         # Cnum, Cden = PtrMatrix(C.num), PtrMatrix(C.den)
-#         # Anum, Aden = PtrMatrix(A.num), PtrMatrix(A.den)
-#         # Bnum, Bden = PtrMatrix(B.num), PtrMatrix(B.den)
-
-#         Cnum, Cden = C.num, C.den
-#         Anum, Aden = A.num, C.den
-#         Bnum, Bden = B.num, C.den
-        
-#         _mul!(Cnum, Anum, Bnum, block_size) #this is wrong
-#         _mul!(Cden, Aden, Bden, block_size)
-#     end
-#     C
-# end
-
-
 function _mul!(C, A, B, sz)
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
-    
     if n >= sz+8 && m >= sz+8 && k >= sz+8
         block_mat_mat_mul!(C, A, B, sz)
     elseif n >= sz+8 && k >= sz+8 && m <  sz+8
