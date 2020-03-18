@@ -6,6 +6,16 @@ function check_compatible_sizes(C, A, B)
     nothing
 end
 
+function choose_block_size(C, A, B, ::Nothing)
+    if (*)(length(C) |> Int128, length(A) |> Int128, length(B) |> Int128) >= ((3DEFAULT_BLOCK_SIZE) >>> 1)^6
+        DEFAULT_BLOCK_SIZE
+    else
+        32
+    end
+end
+choose_block_size(C, A, B, block_size::Integer) = block_size
+
+
 function blocked_mul(A::MatTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Matrix{T}(undef, size(A,1), size(B,2))
@@ -20,15 +30,6 @@ function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2
     C
 end
 
-function choose_block_size(C, A, B, ::Nothing)
-    if (*)(length(C) |> UInt128, length(A) |> UInt128, length(B) |> UInt128) >= ((3DEFAULT_BLOCK_SIZE) >>> 1)^6
-        DEFAULT_BLOCK_SIZE
-    else
-        32
-    end
-end
-choose_block_size(C, A, B, block_size::Integer) = block_size
-
 function blocked_mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
                       block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
@@ -41,7 +42,7 @@ end
 
 function blocked_mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
                       block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
-    sizecheck && check_compatible_sizes(C, A, B)
+    sizecheck && check_compatible_sizes(C.re, A.re, B.re)
     
     _block_size = choose_block_size(C, A, B, block_size)
     
@@ -110,8 +111,8 @@ function blocked_mul(A::MatTypes, B::VecTypes)
 end
 
 function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1}) where {T <: Eltypes}
-    C = StructArray{Complex{T}}((Matrix{T}(undef, size(A, 1)),
-                                 Matrix{T}(undef, size(A, 1))))
+    C = StructArray{Complex{T}}((Vector{T}(undef, size(A, 1)),
+                                 Vector{T}(undef, size(A, 1))))
     blocked_mul!(C, A, B)
     C
 end

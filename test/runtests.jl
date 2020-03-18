@@ -2,10 +2,66 @@ using Test, LinearAlgebra, Random
 using Gaius
 using StructArrays
 
-# @testset "Matrix-Vector products" begin
-    
+@testset "Matrix-Vector Float64" begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(n)
+            A = rand(n, m)
+            v = rand(m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
 
-# end
+@testset "Matrix-Vector ComplexF64" begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(ComplexF64, n)   |> StructArray
+            A = rand(ComplexF64, n, m) |> StructArray
+            v = rand(ComplexF64, m)    |> StructArray
+            @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "Matrix-Vector Float32" begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Float32, n)
+            A = rand(Float32, n, m)
+            v = rand(Float32, m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "Matrix-Vector Int64" begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Int, n)
+            A = rand(-20:20, n, m)
+            v = rand(-20:20, m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "Matrix-Vector ComplexInt32" begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Complex{Int32}, n) |> StructArray       
+            A = StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
+            v = StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))   
+            @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
 
 
 @testset "ComplexFloat64 Matrix Multiplication" begin
