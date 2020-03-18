@@ -20,30 +20,35 @@ function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2
     C
 end
 
-choose_block_size(C::AbstractMatrix, ::Nothing) = size(C, 1) >= (3DEFAULT_BLOCK_SIZE) >>> 1 ? DEFAULT_BLOCK_SIZE : 32
-choose_block_size(::Any, block_size::Integer) = block_size
+function choose_block_size(C, A, B, ::Nothing)
+    if (*)(length(C) |> UInt128, length(A) |> UInt128, length(B) |> UInt128) >= ((3DEFAULT_BLOCK_SIZE) >>> 1)^6
+        DEFAULT_BLOCK_SIZE
+    else
+        32
+    end
+end
+choose_block_size(C, A, B, block_size::Integer) = block_size
 
-
-function blocked_mul!(C::MatTypes{T}, A::MatTypes{T}, B::MatTypes{T};
+function blocked_mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
                       block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
-    _block_size = choose_block_size(C, block_size)
+    _block_size = choose_block_size(C, A, B, block_size)
 
-    GC.@preserve C A B _mul!(PtrMatrix(C), PtrMatrix(A), PtrMatrix(B), _block_size)
+    GC.@preserve C A B _mul!(PtrArray(C), PtrArray(A), PtrArray(B), _block_size)    
     C
 end
 
-function blocked_mul!(C::StructArray{Complex{T}, 2}, A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2};
+function blocked_mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
                       block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
     
-    _block_size = choose_block_size(C, block_size)
+    _block_size = choose_block_size(C, A, B, block_size)
     
     GC.@preserve C A B begin
-        Cre, Cim = PtrMatrix(C.re), PtrMatrix(C.im)
-        Are, Aim = PtrMatrix(A.re), PtrMatrix(A.im)
-        Bre, Bim = PtrMatrix(B.re), PtrMatrix(B.im)
+        Cre, Cim = PtrArray(C.re), PtrArray(C.im)
+        Are, Aim = PtrArray(A.re), PtrArray(A.im)
+        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
         _mul!(    Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -86,3 +91,50 @@ function _mul_add!(C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
     end
 end
 
+#-----------------------------
+# matvec
+
+function check_compatible_sizes(C::VecTypes, A, B::VecTypes)
+    n    = length(C)
+    a, k = size(A)
+    b    = length(B)
+    @assert (n == a) && (k == b) "matrices of size $(size(C)), $(size(A)), $(size(B)) are incompatible"
+    nothing
+end
+
+function blocked_mul(A::MatTypes, B::VecTypes)
+    T = promote_type(eltype(A), eltype(B))
+    C = Vector{T}(undef, size(A,1))
+    blocked_mul!(C, A, B)
+    C
+end
+
+function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1}) where {T <: Eltypes}
+    C = StructArray{Complex{T}}((Matrix{T}(undef, size(A, 1)),
+                                 Matrix{T}(undef, size(A, 1))))
+    blocked_mul!(C, A, B)
+    C
+end
+
+
+function _mul!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz) where {T<:Eltypes}
+    n, k = size(A)
+    if     n >= sz+8 && k >= sz+8
+        block_mat_vec_mul!(C, A, B, sz)
+    elseif n <  sz+8 && k >= sz+8
+        block_covec_vec_mul!(C, A, B, sz)
+    else
+        gemm_kernel!(C, A, B)
+    end
+end
+
+function _mul_add!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
+    n, k = size(A)
+    if     n >= sz+8 && k >= sz+8
+        block_mat_vec_mul_add!(C, A, B, sz, Val(factor))
+    elseif n <  sz+8 && k >= sz+8
+        block_covec_vec_mul_add!(C, A, B, sz, Val(factor))
+    else
+        add_gemm_kernel!(C, A, B, Val(factor))
+    end
+end
