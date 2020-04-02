@@ -19,7 +19,7 @@ Base.@propagate_inbounds function Base.getindex(A::PointerMatrix, i::Integer, j:
     end
     vload(stridedpointer(A), (i-1, j-1))
 end
-Base.@propagate_inbounds function Base.getindex(A::PointerMatrix, v, i::Integer, j::Integer)
+Base.@propagate_inbounds function Base.setindex!(A::PointerMatrix, v, i::Integer, j::Integer)
     @boundscheck begin
         M, N = size(A)
         (M < i || N < j) && throw(BoundsError(A, (i,j)))
