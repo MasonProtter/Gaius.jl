@@ -2,7 +2,7 @@ using Test, LinearAlgebra, Random
 using Gaius
 using StructArrays
 
-@testset "Matrix-Vector Float64" begin
+@testset "Matrix-Vector Float64       " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(n)
@@ -14,7 +14,7 @@ using StructArrays
     end
 end
 
-@testset "Matrix-Vector ComplexF64" begin
+@testset "Matrix-Vector ComplexF64    " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(ComplexF64, n)   |> StructArray
@@ -26,7 +26,7 @@ end
     end
 end
 
-@testset "Matrix-Vector Float32" begin
+@testset "Matrix-Vector Float32       " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Float32, n)
@@ -38,7 +38,7 @@ end
     end
 end
 
-@testset "Matrix-Vector Int64" begin
+@testset "Matrix-Vector Int64         " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Int, n)
@@ -50,7 +50,7 @@ end
     end
 end
 
-@testset "Matrix-Vector ComplexInt32" begin
+@testset "Matrix-Vector ComplexInt32  " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Complex{Int32}, n) |> StructArray       
@@ -64,7 +64,7 @@ end
 
 
 
-@testset "ComplexFloat64 Matrix Multiplication" begin
+@testset "ComplexFloat64 Matrix-Matrix" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -91,7 +91,7 @@ end
     end
 end
 
-@testset "Float64 Multiplication" begin
+@testset "Float64 Matrix-Matrix       " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -129,7 +129,7 @@ end
     end
 end
 
-@testset "Float32 Multiplication" begin
+@testset "Float32 Matrix-Matrix       " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -150,7 +150,7 @@ end
 end
 
 
-@testset "Int64 Multiplication" begin
+@testset "Int64 Matrix-Matrix         " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -171,7 +171,7 @@ end
 end
 
 
-@testset "Int32 Multiplication" begin
+@testset "Int32 Matrix-Matrix         " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
