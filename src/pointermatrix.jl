@@ -1,7 +1,8 @@
 
 PtrArray(M::AbstractMatrix) = PtrMatrix(M)
-PtrArray(v::AbstractVector) = PtrVector(v)
-
+PtrArray(v::AbstractVector) = v#PtrVector(v)
+PtrArray(v::Adjoint{T, <:AbstractVector}) where {T} = v#PointerAdjointVector(v)
+PtrArray(v::Transpose{T, <:AbstractVector}) where {T} = v#PointerTransposeVector(v)
 
 struct PointerMatrix{T,P <: AbstractStridedPointer} <: AbstractMatrix{T}
     ptr::P
@@ -34,21 +35,71 @@ Base.IndexStyle(::Type{<:PointerMatrix}) = IndexCartesian()
 
 
 
+# This machinery below might not actually be needed.
 
-struct PointerVector{T,P <: AbstractStridedPointer} <: AbstractVector{T}
-    ptr::P
-    length::Int
-    PointerVector(ptr::P, length::Int) where {T, P <: AbstractStridedPointer{T}} = new{T,P}(ptr, length)
-end
-@inline PtrVector(v::AbstractVector) = PointerVector(stridedpointer(v), length(v))
-@inline Base.pointer(v::PointerVector) = pointer(v.ptr)
-@inline Base.size(v::PointerVector) = (v.length,)
-@inline Base.length(v::PointerVector) = v.length
-@inline Base.strides(v::PointerVector) = strides(v.ptr)
-@inline stridedpointer(v::PointerVector) = v.ptr
+# struct PointerVector{T,P <: AbstractStridedPointer} <: AbstractVector{T}
+#     ptr::P
+#     length::Int
+#     PointerVector(ptr::P, length::Int) where {T, P <: AbstractStridedPointer{T}} = new{T,P}(ptr, length)
+# end
+# @inline PtrVector(v::AbstractVector) = PointerVector(stridedpointer(v), length(v))
+# @inline Base.pointer(v::PointerVector) = pointer(v.ptr)
+# @inline Base.size(v::PointerVector) = (v.length,)
+# @inline Base.length(v::PointerVector) = v.length
+# @inline Base.strides(v::PointerVector) = strides(v.ptr)
+# @inline stridedpointer(v::PointerVector) = v.ptr
 
-@inline function Base.maybeview(v::PointerVector, i::UnitRange)
-    PointerVector(gesp(v.ptr, (first(i) - 1,)), length(i))
-end
+# @inline function Base.maybeview(v::PointerVector, i::UnitRange)
+#     PointerVector(gesp(v.ptr, (first(i) - 1,)), length(i))
+# end
 
-Base.IndexStyle(::Type{<:PointerVector}) = IndexLinear()
+# Base.IndexStyle(::Type{<:PointerVector}) = IndexLinear()
+
+
+
+# struct PointerAdjointVector{T,P <: AbstractStridedPointer} <: AbstractMatrix{T}
+#     ptr::P
+#     length::Int
+#     PointerAdjointVector(ptr::P, length::Int) where {T, P <: AbstractStridedPointer{T}} = new{T,P}(ptr, length)
+# end
+# @inline function PointerAdjointVector(v::Adjoint{T, <:AbstractVector{T}}) where {T}
+#     vp = parent(v)
+#     if T <: Complex
+#         vp = conj.(p) #this copy is unfortunate, but I'm scared of mutating the user's data
+#     end
+#     PointerAdjointVector(stridedpointer(vp), length(v))
+# end
+# @inline Base.pointer(v::PointerAdjointVector) = pointer(v.ptr)
+# @inline Base.size(v::PointerAdjointVector) = (1,v.length)
+# @inline Base.length(v::PointerAdjointVector) = v.length
+# @inline Base.strides(v::PointerAdjointVector) = strides(v.ptr)
+# @inline stridedpointer(v::PointerAdjointVector) = v.ptr
+
+# @inline function Base.maybeview(v::PointerAdjointVector, i::UnitRange)
+#     PointerVector(gesp(v.ptr, (first(i) - 1,)), length(i))
+# end
+
+# Base.IndexStyle(::Type{<:PointerAdjointVector}) = IndexLinear()
+
+
+
+# struct PointerTransposeVector{T,P <: AbstractStridedPointer} <: AbstractMatrix{T}
+#     ptr::P
+#     length::Int
+#     PointerTransposeVector(ptr::P, length::Int) where {T, P <: AbstractStridedPointer{T}} = new{T,P}(ptr, length)
+# end
+# @inline function PointerTransposeVector(v::Transpose{T, <:AbstractVector{T}}) where {T}
+#     vp = parent(v)
+#     PointerTransposeVector(stridedpointer(vp), length(v))
+# end
+# @inline Base.pointer(v::PointerTransposeVector) = pointer(v.ptr)
+# @inline Base.size(v::PointerTransposeVector) = (1,v.length)
+# @inline Base.length(v::PointerTransposeVector) = v.length
+# @inline Base.strides(v::PointerTransposeVector) = strides(v.ptr)
+# @inline stridedpointer(v::PointerTransposeVector) = v.ptr
+
+# @inline function Base.maybeview(v::PointerTransposeVector, i::UnitRange)
+#     PointerVector(gesp(v.ptr, (first(i) - 1,)), length(i))
+# end
+
+# Base.IndexStyle(::Type{<:PointerTransposeVector}) = IndexLinear()

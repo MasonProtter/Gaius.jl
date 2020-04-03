@@ -38,9 +38,9 @@ const MatTypesR{T} = Union{Adjoint{T,<:MatTypesC{T}},
                            Transpose{T,<:MatTypesC{T}}} # R for Row Major
 const MatTypes{ T} = Union{MatTypesC{T}, MatTypesR{T}}
 
-const   VecTypes{T} = Union{Vector{T}, SubArray{T, 1, <:Array}, PointerVector{T}}
-const CoVecTypes{T} = Union{Adjoint{T,<:VecTypes{T}},
-                            Transpose{T, <:VecTypes{T}}}
+const   VecTypes{T} = Union{Vector{T}, SubArray{T, 1, <:Array}}#, PointerVector{T}}
+const CoVecTypes{T} = Union{Adjoint{T,   <:VecTypes{T}},
+                            Transpose{T, <:VecTypes{T}}}#, PointerAdjointVector{T}}
 
 include("matmul.jl")
 include("block_operations.jl")

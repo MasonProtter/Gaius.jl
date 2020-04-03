@@ -129,12 +129,67 @@ function _mul!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz) where {T<:Elt
     end
 end
 
-function _mul_add!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
+function _mul_add!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz, ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
     n, k = size(A)
     if     n >= sz+8 && k >= sz+8
         block_mat_vec_mul_add!(C, A, B, sz, Val(factor))
     elseif n <  sz+8 && k >= sz+8
         block_covec_vec_mul_add!(C, A, B, sz, Val(factor))
+    else
+        add_gemm_kernel!(C, A, B, Val(factor))
+    end
+end
+
+
+#-----------------------------
+# covec-mat
+
+function check_compatible_sizes(C::CoVecTypes, A::CoVecTypes, B::MatTypes)
+    m    = length(C)
+    n    = length(A)
+    a, b = size(B)
+    @assert (n == a) && (m == b) "matrices of size $(size(C)), $(size(A)), $(size(B)) are incompatible"
+    nothing
+end
+
+function blocked_mul(A::CoVecTypes, B::MatTypes)
+    T = promote_type(eltype(A), eltype(B))
+    C = Vector{T}(undef, size(B,2))'
+    blocked_mul!(C, A, B)
+    C
+end
+
+function blocked_mul(A::Adjoint{T, <:StructArray{Complex{T}, 1}}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
+    C = StructArray{Complex{T}}((Vector{T}(undef, size(B, 2)),
+                                 Vector{T}(undef, size(B, 2))))'
+    blocked_mul!(C, A, B)
+    C
+end
+
+function blocked_mul(A::Transpose{T, <:StructArray{Complex{T}, 1}}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
+    C = StructArray{Complex{T}}((Vector{T}(undef, size(B, 2)),
+                                 Vector{T}(undef, size(B, 2)))) |> transpose
+    blocked_mul!(C, A, B)
+    C
+end
+
+function _mul!(C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatTypes{T}, sz) where {T<:Eltypes}
+    n, k, m = 1, size(A, 1), length(C)
+    if     k >= sz+8 && m >= sz+8
+        block_covec_mat_mul!(C, A, B, sz)
+    elseif k >= sz+8 && m <  sz+8
+        block_covec_vec_mul!(C, A, B, sz)
+    else
+        gemm_kernel!(C, A, B)
+    end
+end
+
+function _mul_add!(C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatTypes{T}, sz, ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
+    n, k, m = 1, size(A, 1), length(C)
+    if     k >= sz+8 && m >= sz+8
+        block_covec_mat_mul!(C, A, B, sz, Val(factor))
+    elseif k >= sz+8 && m <  sz+8
+        block_covec_vec_mul!(C, A, B, sz, Val(factor))
     else
         add_gemm_kernel!(C, A, B, Val(factor))
     end

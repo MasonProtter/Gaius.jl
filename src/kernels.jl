@@ -62,7 +62,7 @@ function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes)
     end
 end
 
-function _dd_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{-1})
+function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{-1})
     @avx for n ∈ 1:size(A, 1)
         uₙ = zero(eltype(u))
         for k ∈ 1:size(A, 2)
@@ -79,5 +79,47 @@ function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{factor}) 
             uₙ += factor * A[n,k] * v[k]
         end
         u[n] += uₙ
+    end
+end
+
+#____________
+
+function gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes)
+    @avx for m ∈ 1:size(A, 2)
+        uₘ = zero(eltype(u))
+        for k ∈ 1:size(A, 1)
+            uₘ += v[k] * A[k, m]
+        end
+        u[m] = uₘ
+    end
+end
+
+function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes)
+    @avx for m ∈ 1:size(A, 2)
+        uₘ = zero(eltype(u))
+        for k ∈ 1:size(A, 1)
+            uₘ += v[k] * A[k, m]
+        end
+        u[m] += uₘ
+    end
+end
+
+function add_gemm_kernel(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{-1})
+    @avx for m ∈ 1:size(A, 2)
+        uₘ = zero(eltype(u))
+        for k ∈ 1:size(A, 1)
+            uₘ -= v[k] * A[k, m]
+        end
+        u[m] += uₘ
+    end
+end
+
+function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{factor}) where {factor}
+    @avx for m ∈ 1:size(A, 2)
+        uₘ = zero(eltype(u))
+        for k ∈ 1:size(A, 1)
+            uₘ += factor * v[k] * A[k, m]
+        end
+        u[m] += uₘ
     end
 end

@@ -2,7 +2,22 @@ using Test, LinearAlgebra, Random
 using Gaius
 using StructArrays
 
-@testset "Matrix-Vector Float64       " begin
+@testset "Float64 Matrix-CoVector     " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(m)
+            A = rand(n, m)
+            v = rand(n)
+            @test blocked_mul!(u', v', A) ≈ v' * A
+            @test u' ≈ blocked_mul(v', A)
+
+            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
+            @test transpose(u) ≈ blocked_mul(transpose(v), A)
+        end
+    end
+end
+
+@testset "Float64 Matrix-Vector       " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(n)
@@ -26,7 +41,7 @@ end
     end
 end
 
-@testset "Matrix-Vector Float32       " begin
+@testset "Float32 Matrix-Vector       " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Float32, n)
@@ -38,7 +53,7 @@ end
     end
 end
 
-@testset "Matrix-Vector Int64         " begin
+@testset "Int64 Matrix-Vector         " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Int, n)
@@ -50,7 +65,7 @@ end
     end
 end
 
-@testset "Matrix-Vector ComplexInt32  " begin
+@testset "ComplexInt32 Matrix-Vector  " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(Complex{Int32}, n) |> StructArray       
