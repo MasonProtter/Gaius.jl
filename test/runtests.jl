@@ -2,24 +2,9 @@ using Test, LinearAlgebra, Random
 using Gaius
 using StructArrays
 
-@testset "Float64 Matrix-CoVector     " begin
-    for n ∈ [10, 100, 500, 2000]
-        for m ∈ [10, 100, 2000]
-            u = zeros(m)
-            A = rand(n, m)
-            v = rand(n)
-            @test blocked_mul!(u', v', A) ≈ v' * A
-            @test u' ≈ blocked_mul(v', A)
-
-            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
-            @test transpose(u) ≈ blocked_mul(transpose(v), A)
-        end
-    end
-end
-
 @testset "Float64 Matrix-Vector       " begin
-    for n ∈ [10, 100, 500, 2000]
-        for m ∈ [10, 100, 2000]
+    for n ∈ [10, 100, 500, 10000]
+        for m ∈ [10, 100, 10000]
             u = zeros(n)
             A = rand(n, m)
             v = rand(m)
@@ -29,7 +14,7 @@ end
     end
 end
 
-@testset "Matrix-Vector ComplexF64    " begin
+@testset "ComplexF64  Matrix-Vector   " begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(ComplexF64, n)   |> StructArray
@@ -76,6 +61,38 @@ end
         end
     end
 end
+
+
+@testset "Float64 CoVector-Matrix     " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(m)
+            A = rand(n, m)
+            v = rand(n)
+            @test blocked_mul!(u', v', A) ≈ v' * A
+            @test u' ≈ blocked_mul(v', A)
+
+            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
+            @test transpose(u) ≈ blocked_mul(transpose(v), A)
+        end
+    end
+end
+
+@testset "ComplexF32 CoVector-Matrix  " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Complex{Float32}, m)   |> StructArray
+            A = rand(Complex{Float32}, n, m) |> StructArray
+            v = rand(Complex{Float32}, n)    |> StructArray
+            @test blocked_mul!(u', v', A) ≈ v' * A
+            @test u' ≈ blocked_mul(v', A)
+
+            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
+            @test transpose(u) ≈ blocked_mul(transpose(v), A)
+        end
+    end
+end
+
 
 
 
