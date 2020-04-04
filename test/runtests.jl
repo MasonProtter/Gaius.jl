@@ -2,7 +2,101 @@ using Test, LinearAlgebra, Random
 using Gaius
 using StructArrays
 
-@testset "ComplexFloat64 Multiplication" begin
+@testset "Float64 Matrix-Vector       " begin
+    for n ∈ [10, 100, 500, 10000]
+        for m ∈ [10, 100, 10000]
+            u = zeros(n)
+            A = rand(n, m)
+            v = rand(m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "ComplexF64  Matrix-Vector   " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(ComplexF64, n)   |> StructArray
+            A = rand(ComplexF64, n, m) |> StructArray
+            v = rand(ComplexF64, m)    |> StructArray
+            @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "Float32 Matrix-Vector       " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Float32, n)
+            A = rand(Float32, n, m)
+            v = rand(Float32, m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "Int64 Matrix-Vector         " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Int, n)
+            A = rand(-20:20, n, m)
+            v = rand(-20:20, m)
+            @test blocked_mul!(u, A, v) ≈ A * v
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+@testset "ComplexInt32 Matrix-Vector  " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Complex{Int32}, n) |> StructArray       
+            A = StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
+            v = StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))   
+            @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
+            @test u ≈ blocked_mul(A, v)
+        end
+    end
+end
+
+
+@testset "Float64 CoVector-Matrix     " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(m)
+            A = rand(n, m)
+            v = rand(n)
+            @test blocked_mul!(u', v', A) ≈ v' * A
+            @test u' ≈ blocked_mul(v', A)
+
+            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
+            @test transpose(u) ≈ blocked_mul(transpose(v), A)
+        end
+    end
+end
+
+@testset "ComplexF32 CoVector-Matrix  " begin
+    for n ∈ [10, 100, 500, 2000]
+        for m ∈ [10, 100, 2000]
+            u = zeros(Complex{Float32}, m)   |> StructArray
+            A = rand(Complex{Float32}, n, m) |> StructArray
+            v = rand(Complex{Float32}, n)    |> StructArray
+            @test blocked_mul!(u', v', A) ≈ v' * A
+            @test u' ≈ blocked_mul(v', A)
+
+            @test blocked_mul!(transpose(u), transpose(v), A) ≈ transpose(v) * A
+            @test transpose(u) ≈ blocked_mul(transpose(v), A)
+        end
+    end
+end
+
+
+
+
+@testset "ComplexFloat64 Matrix-Matrix" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -29,7 +123,7 @@ using StructArrays
     end
 end
 
-@testset "Float64 Multiplication" begin
+@testset "Float64 Matrix-Matrix       " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -67,7 +161,7 @@ end
     end
 end
 
-@testset "Float32 Multiplication" begin
+@testset "Float32 Matrix-Matrix       " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -88,7 +182,7 @@ end
 end
 
 
-@testset "Int64 Multiplication" begin
+@testset "Int64 Matrix-Matrix         " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
@@ -109,7 +203,7 @@ end
 end
 
 
-@testset "Int32 Multiplication" begin
+@testset "Int32 Matrix-Matrix         " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
