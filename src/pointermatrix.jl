@@ -15,21 +15,21 @@ end
 @inline Base.strides(A::PointerMatrix) = strides(A.ptr)
 @inline stridedpointer(A::PointerMatrix) = A.ptr
 
-@inline Base.maybeview(A::PointerMatrix, r::UnitRange, c::UnitRange) = PointerMatrix(gesp(A.ptr, (first(r) - 1, (first(c) - 1))), (length(r), length(c)))
+@inline Base.maybeview(A::PointerMatrix, r::UnitRange, c::UnitRange) = PointerMatrix(gesp(A.ptr, (first(r) - 1, first(c) - 1)), (length(r), length(c)))
 # getindex is important for the sake of printing the AbstractPointerMatrix. If we call something a Matrix, it's nice to support the interface if possible.
 Base.@propagate_inbounds function Base.getindex(A::PointerMatrix, i::Integer, j::Integer)
     @boundscheck begin
         M, N = size(A)
         (M < i || N < j) && throw(BoundsError(A, (i,j)))
     end
-    vload(stridedpointer(A), (i-1, j-1))
+    vload(stridedpointer(A), (i, j))
 end
 Base.@propagate_inbounds function Base.setindex!(A::PointerMatrix, v, i::Integer, j::Integer)
     @boundscheck begin
         M, N = size(A)
         (M < i || N < j) && throw(BoundsError(A, (i,j)))
     end
-    vstore!(stridedpointer(A), v, (i-1, j-1))
+    vstore!(stridedpointer(A), v, (i, j))
 end
 Base.IndexStyle(::Type{<:PointerMatrix}) = IndexCartesian()
 

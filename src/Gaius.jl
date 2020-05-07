@@ -1,6 +1,6 @@
 module Gaius
 
-using LoopVectorization: @avx, VectorizationBase.AbstractStridedPointer, VectorizationBase.gesp, VectorizationBase.gep, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.AVX512F
+using LoopVectorization: @avx, VectorizationBase.AbstractStridedPointer, VectorizationBase.gesp, VectorizationBase.vload, VectorizationBase.vstore!, VectorizationBase.AVX512F
 import LoopVectorization: @avx, VectorizationBase.stridedpointer
 using StructArrays: StructArray
 using LinearAlgebra: LinearAlgebra, Adjoint, Transpose
