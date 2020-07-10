@@ -104,7 +104,7 @@ function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes)
     end
 end
 
-function add_gemm_kernel(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{-1})
+function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{-1})
     @avx for m ∈ 1:size(A, 2)
         uₘ = zero(eltype(u))
         for k ∈ 1:size(A, 1)
