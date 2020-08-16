@@ -1,3 +1,6 @@
+Note: Gaius.jl is not actively maintained and I do not anticipate doing further work on it. There are other, more promising projects that may result in a scalable, multi-threaded pure julia BLAS library such as [[https://github.com/mcabbott/Tullio.jl][Tullio.jl]].
+
+
 #+BEGIN_CENTER
 /Because Caesar.jl was taken/ 
 #+END_CENTER
