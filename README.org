@@ -1,6 +1,3 @@
-Note: Gaius.jl is not actively maintained and I do not anticipate doing further work on it. There are other, more promising projects that may result in a scalable, multi-threaded pure julia BLAS library such as [[https://github.com/mcabbott/Tullio.jl][Tullio.jl]].
-
-
 #+BEGIN_CENTER
 /Because Caesar.jl was taken/ 
 #+END_CENTER
@@ -14,6 +11,9 @@ may be fearlessly nested inside multi-threaded julia programs.
 
 Gaius is *not* stable or well tested. Only use it if you're
 adventurous.
+
+
+Note: Gaius.jl is not actively maintained and I do not anticipate doing further work on it. There are other, more promising projects that may result in a scalable, multi-threaded pure julia BLAS library such as [[https://github.com/mcabbott/Tullio.jl][Tullio.jl]].
 
 ** Matrix Multiplication
 Currently, fast, native matrix-multiplication is only implemented
