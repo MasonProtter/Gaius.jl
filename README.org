@@ -1,3 +1,5 @@
+#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3ACI"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI/badge.svg"></a>
+
 #+BEGIN_CENTER
 /Because Caesar.jl was taken/ 
 #+END_CENTER
