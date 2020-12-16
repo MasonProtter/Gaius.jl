@@ -29,7 +29,7 @@ commonly encountered numeric ~struct~ types such as ~Rational~ and
 #+HTML: <p>
 Gaius.jl exports the functions ~blocked_mul~ and
 ~blocked_mul!~. ~blocked_mul~ is to be used like the regular ~*~
-operator between two matrices whereas ~bloked_mul!~ takes in three
+operator between two matrices whereas ~blocked_mul!~ takes in three
 matrices ~C, A, B~ and stores ~A*B~ in ~C~ overwriting the contents of
 ~C~.
 
