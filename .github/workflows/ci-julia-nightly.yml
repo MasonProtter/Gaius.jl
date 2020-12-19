@@ -16,13 +16,14 @@ jobs:
       matrix:
         arch:
           - 'x64'
+        os:
+          - ubuntu-latest
+          - windows-latest
         threads:
           - '1'
           - '2'
         version:
           - 'nightly'
-        os:
-          - ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
