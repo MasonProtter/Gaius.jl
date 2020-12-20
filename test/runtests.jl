@@ -1,6 +1,11 @@
-using Test, LinearAlgebra, Random
 using Gaius
+using InteractiveUtils
+using LinearAlgebra
+using Random
 using StructArrays
+using Test
+
+versioninfo(; verbose = true)
 
 @testset "Float64 Matrix-Vector       " begin
     for n ∈ [10, 100, 500, 10000]
