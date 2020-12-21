@@ -186,6 +186,25 @@ end
     end
 end
 
+@testset "Int32 Matrix-Matrix         " begin
+    for sz ∈ [10, 50, 100, 200, 400, 1000]
+        n, k, m = (sz .+ rand(-5:5, 3))
+        @testset "($n × $k) × ($k × $m)" begin
+            C1 = zeros(Int32, n, m)
+            C2 = zeros(Int32, n, m)
+            A  = rand(Int32.(-100:100), n, k)
+            B  = rand(Int32.(-100:100), k, m)
+            At = copy(A')
+            Bt = copy(B')
+
+            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul(A, B) ≈ C1
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', B)   ≈ C2
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, A,   Bt') ≈ C2
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', Bt') ≈ C2
+        end
+    end
+end
 
 @testset "Int64 Matrix-Matrix         " begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
@@ -203,27 +222,6 @@ end
             fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', B)   ≈ C2
             fill!(C1, typemax(Int64)); @test blocked_mul!(C1, A,   Bt') ≈ C2
             fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', Bt') ≈ C2
-        end
-    end
-end
-
-
-@testset "Int32 Matrix-Matrix         " begin
-    for sz ∈ [10, 50, 100, 200, 400, 1000]
-        n, k, m = (sz .+ rand(-5:5, 3))
-        @testset "($n × $k) × ($k × $m)" begin
-            C1 = zeros(Int32, n, m)
-            C2 = zeros(Int32, n, m)
-            A  = rand(Int32.(-100:100), n, k)
-            B  = rand(Int32.(-100:100), k, m)
-            At = copy(A')
-            Bt = copy(B')
-
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
-            @test blocked_mul(A, B) ≈ C1
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', B)   ≈ C2
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, A,   Bt') ≈ C2
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', Bt') ≈ C2
         end
     end
 end
