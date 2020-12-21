@@ -7,6 +7,8 @@ using Test
 
 versioninfo(; verbose = true)
 
+@testset "Gaius.jl" begin
+
 @testset "Float64 Matrix-Vector       " begin
     for n ∈ [10, 100, 500, 10000]
         for m ∈ [10, 100, 10000]
@@ -227,3 +229,5 @@ end
         end
     end
 end
+
+end # end @testset "Gaius.jl"
