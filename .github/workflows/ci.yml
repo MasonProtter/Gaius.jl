@@ -22,6 +22,7 @@ jobs:
         threads:
           - '1'
           - '2'
+          - '6'
         version:
           - '1.5'
           - '1'
