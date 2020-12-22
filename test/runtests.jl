@@ -1,10 +1,10 @@
 using Gaius
-using LinearAlgebra
-using Random
 using Test
 
 import BenchmarkTools
 import InteractiveUtils
+import LinearAlgebra
+import Random
 import StructArrays
 
 InteractiveUtils.versioninfo()
@@ -110,7 +110,7 @@ end
             A  = StructArrays.StructArray{ComplexF64}((randn(n, k), randn(n, k)))
             B  = StructArrays.StructArray{ComplexF64}((randn(k, m), randn(k, m)))
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
         end
     end
@@ -122,7 +122,7 @@ end
             A  = StructArrays.StructArray{ComplexF64}((randn(n, k), randn(n, k)))
             B  = StructArrays.StructArray{ComplexF64}((randn(k, m), randn(k, m)))
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
         end
     end
@@ -139,7 +139,7 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
 
             fill!(C1, NaN); @test blocked_mul!(C1, At', B)   ≈ C2
@@ -157,7 +157,7 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
             fill!(C1, NaN); @test blocked_mul!(C1, At', B)   ≈ C2
             fill!(C1, NaN); @test blocked_mul!(C1, A,   Bt') ≈ C2
@@ -177,7 +177,7 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
             fill!(C1, NaN32); @test blocked_mul!(C1, At', B)   ≈ C2
             fill!(C1, NaN32); @test blocked_mul!(C1, A,   Bt') ≈ C2
@@ -197,7 +197,7 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
             fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', B)   ≈ C2
             fill!(C1, typemax(Int64)); @test blocked_mul!(C1, A,   Bt') ≈ C2
@@ -217,7 +217,7 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
+            @test blocked_mul!(C1, A, B) ≈ LinearAlgebra.mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
             fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', B)   ≈ C2
             fill!(C1, typemax(Int32)); @test blocked_mul!(C1, A,   Bt') ≈ C2
