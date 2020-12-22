@@ -1,20 +1,20 @@
 function gemm_kernel!(C, A, B)
     @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
+        C_n_m = zero(eltype(C))
         for k ∈ 1:size(A, 2)
-            Cₙₘ += A[n,k] * B[k,m]
+            C_n_m += A[n,k] * B[k,m]
         end
-        C[n,m] = Cₙₘ
+        C[n,m] = C_n_m
     end
 end
 
 function add_gemm_kernel!(C::MatTypes, A::MatTypes, B::MatTypes)
     @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
+        C_n_m = zero(eltype(C))
         for k ∈ 1:size(A, 2)
-            Cₙₘ += A[n,k] * B[k,m]
+            C_n_m += A[n,k] * B[k,m]
         end
-        C[n,m] += Cₙₘ
+        C[n,m] += C_n_m
     end
 end
 
@@ -22,21 +22,21 @@ add_gemm_kernel!(C::MatTypes, A::MatTypes, B::MatTypes, ::Val{1}) = add_gemm_ker
 
 function add_gemm_kernel!(C::MatTypes, A::MatTypes, B::MatTypes, ::Val{-1})
     @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
+        C_n_m = zero(eltype(C))
         for k ∈ 1:size(A, 2)
-            Cₙₘ -= A[n,k] * B[k,m]
+            C_n_m -= A[n,k] * B[k,m]
         end
-        C[n,m] += Cₙₘ
+        C[n,m] += C_n_m
     end
 end
 
 function add_gemm_kernel!(C::MatTypes, A::MatTypes, B::MatTypes, ::Val{factor}) where {factor}
     @avx for n ∈ 1:size(A, 1), m ∈ 1:size(B, 2)
-        Cₙₘ = zero(eltype(C))
+        C_n_m = zero(eltype(C))
         for k ∈ 1:size(A, 2)
-            Cₙₘ += factor * A[n,k] * B[k,m]
+            C_n_m += factor * A[n,k] * B[k,m]
         end
-        C[n,m] += Cₙₘ
+        C[n,m] += C_n_m
     end
 end
 
@@ -44,41 +44,41 @@ end
 
 function gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes)
     @avx for n ∈ 1:size(A, 1)
-        uₙ = zero(eltype(u))
+        u_n = zero(eltype(u))
         for k ∈ 1:size(A, 2)
-            uₙ += A[n,k] * v[k]
+            u_n += A[n,k] * v[k]
         end
-        u[n] = uₙ
+        u[n] = u_n
     end
 end
 
 function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes)
     @avx for n ∈ 1:size(A, 1)
-        uₙ = zero(eltype(u))
+        u_n = zero(eltype(u))
         for k ∈ 1:size(A, 2)
-            uₙ += A[n,k] * v[k]
+            u_n += A[n,k] * v[k]
         end
-        u[n] += uₙ
+        u[n] += u_n
     end
 end
 
 function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{-1})
     @avx for n ∈ 1:size(A, 1)
-        uₙ = zero(eltype(u))
+        u_n = zero(eltype(u))
         for k ∈ 1:size(A, 2)
-            uₙ -= A[n,k] * v[k]
+            u_n -= A[n,k] * v[k]
         end
-        u[n] += uₙ
+        u[n] += u_n
     end
 end
 
 function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{factor}) where {factor}
     @avx for n ∈ 1:size(A, 1)
-        uₙ = zero(eltype(u))
+        u_n = zero(eltype(u))
         for k ∈ 1:size(A, 2)
-            uₙ += factor * A[n,k] * v[k]
+            u_n += factor * A[n,k] * v[k]
         end
-        u[n] += uₙ
+        u[n] += u_n
     end
 end
 
@@ -86,40 +86,40 @@ end
 
 function gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes)
     @avx for m ∈ 1:size(A, 2)
-        uₘ = zero(eltype(u))
+        u_m = zero(eltype(u))
         for k ∈ 1:size(A, 1)
-            uₘ += v[k] * A[k, m]
+            u_m += v[k] * A[k, m]
         end
-        u[m] = uₘ
+        u[m] = u_m
     end
 end
 
 function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes)
     @avx for m ∈ 1:size(A, 2)
-        uₘ = zero(eltype(u))
+        u_m = zero(eltype(u))
         for k ∈ 1:size(A, 1)
-            uₘ += v[k] * A[k, m]
+            u_m += v[k] * A[k, m]
         end
-        u[m] += uₘ
+        u[m] += u_m
     end
 end
 
 function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{-1})
     @avx for m ∈ 1:size(A, 2)
-        uₘ = zero(eltype(u))
+        u_m = zero(eltype(u))
         for k ∈ 1:size(A, 1)
-            uₘ -= v[k] * A[k, m]
+            u_m -= v[k] * A[k, m]
         end
-        u[m] += uₘ
+        u[m] += u_m
     end
 end
 
 function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{factor}) where {factor}
     @avx for m ∈ 1:size(A, 2)
-        uₘ = zero(eltype(u))
+        u_m = zero(eltype(u))
         for k ∈ 1:size(A, 1)
-            uₘ += factor * v[k] * A[k, m]
+            u_m += factor * v[k] * A[k, m]
         end
-        u[m] += uₘ
+        u[m] += u_m
     end
 end
