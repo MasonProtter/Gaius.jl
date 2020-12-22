@@ -53,8 +53,8 @@ end
             u = zeros(Int, n)
             A = rand(-20:20, n, m)
             v = rand(-20:20, m)
-            @test blocked_mul!(u, A, v) ≈ A * v
-            @test u ≈ blocked_mul(A, v)
+            @test blocked_mul!(u, A, v) == A * v
+            @test u == blocked_mul(A, v)
         end
     end
 end
@@ -65,8 +65,8 @@ end
             u = zeros(Complex{Int32}, n) |> StructArrays.StructArray
             A = StructArrays.StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
             v = StructArrays.StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))
-            @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
-            @test u ≈ blocked_mul(A, v)
+            @test blocked_mul!(u, A, v) == collect(A) * collect(v)
+            @test u == blocked_mul(A, v)
         end
     end
 end
@@ -197,11 +197,11 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
-            @test blocked_mul(A, B) ≈ C1
-            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', B)   ≈ C2
-            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, A,   Bt') ≈ C2
-            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', Bt') ≈ C2
+            @test blocked_mul!(C1, A, B) == mul!(C2, A, B)
+            @test blocked_mul(A, B) == C1
+            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', B)   == C2
+            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, A,   Bt') == C2
+            fill!(C1, typemax(Int64)); @test blocked_mul!(C1, At', Bt') == C2
         end
     end
 end
@@ -217,11 +217,11 @@ end
             At = copy(A')
             Bt = copy(B')
 
-            @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
-            @test blocked_mul(A, B) ≈ C1
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', B)   ≈ C2
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, A,   Bt') ≈ C2
-            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', Bt') ≈ C2
+            @test blocked_mul!(C1, A, B) == mul!(C2, A, B)
+            @test blocked_mul(A, B) == C1
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', B)   == C2
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, A,   Bt') == C2
+            fill!(C1, typemax(Int32)); @test blocked_mul!(C1, At', Bt') == C2
         end
     end
 end
