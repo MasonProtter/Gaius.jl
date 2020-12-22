@@ -4,9 +4,7 @@
 /Because Caesar.jl was taken/ 
 #+END_CENTER
 
-#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3ACI"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI/badge.svg"></a>
-
-#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3A%22CI+%28Julia+nightly%29%22"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI%20(Julia%20nightly)/badge.svg"></a>
+#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3ACI"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI/badge.svg"></a> <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3A%22CI+%28Julia+nightly%29%22"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI%20(Julia%20nightly)/badge.svg"></a> <a href="https://codecov.io/gh/MasonProtter/Gaius.jl"><img src="https://codecov.io/gh/MasonProtter/Gaius.jl/branch/master/graph/badge.svg"></a>
 
 Gaius.jl is a multi-threaded BLAS-like library using a
 divide-and-conquer strategy to parallelism, and built on top of the
