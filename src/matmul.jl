@@ -15,7 +15,6 @@ function choose_block_size(C, A, B, ::Nothing)
 end
 choose_block_size(C, A, B, block_size::Integer) = block_size
 
-
 function blocked_mul(A::MatTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Matrix{T}(undef, size(A,1), size(B,2))
@@ -36,16 +35,16 @@ function blocked_mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray
 
     _block_size = choose_block_size(C, A, B, block_size)
 
-    GC.@preserve C A B _mul!(PtrArray(C), PtrArray(A), PtrArray(B), _block_size)    
+    GC.@preserve C A B _mul!(PtrArray(C), PtrArray(A), PtrArray(B), _block_size)
     C
 end
 
 function blocked_mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
                       block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
-    
+
     _block_size = choose_block_size(C, A, B, block_size)
-    
+
     GC.@preserve C A B begin
         Cre, Cim = PtrArray(C.re), PtrArray(C.im)
         Are, Aim = PtrArray(A.re), PtrArray(A.im)
@@ -63,7 +62,7 @@ function blocked_mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                       B::StructArray{Complex{T}};
                       block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
-    
+
     _block_size = choose_block_size(C, A, B, block_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
@@ -85,9 +84,9 @@ function blocked_mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                       B::StructArray{Complex{T}};
                       block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
-    
+
     _block_size = choose_block_size(C, A, B, block_size)
-    
+
     GC.@preserve C A B begin
         Cre, Cim = PtrArray(C.parent.re |> transpose), PtrArray(C.parent.im |> transpose)
         Are, Aim = PtrArray(A.parent.re |> transpose), PtrArray(A.parent.im |> transpose)
@@ -99,7 +98,6 @@ function blocked_mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
     end
     C
 end
-
 
 function _mul!(C, A, B, sz)
     n, k, m = size(C, 1), size(A, 2), size(C, 2)
@@ -160,7 +158,6 @@ function blocked_mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1
     C
 end
 
-
 function _mul!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz) where {T<:Eltypes}
     n, k = size(A)
     if     n >= sz+8 && k >= sz+8
@@ -182,7 +179,6 @@ function _mul_add!(C::VecTypes{T}, A::MatTypes{T}, B::VecTypes{T}, sz, ::Val{fac
         add_gemm_kernel!(C, A, B, Val(factor))
     end
 end
-
 
 #-----------------------------
 # covec-mat
