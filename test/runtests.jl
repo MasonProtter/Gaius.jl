@@ -193,7 +193,7 @@ end
             C1 = zeros(Int64, n, m)
             C2 = zeros(Int64, n, m)
             A  = rand(Int64.(-100:100), n, k)
-            B  = rand(Int64.(-100:100), n, k)
+            B  = rand(Int64.(-100:100), k, m)
             At = copy(A')
             Bt = copy(B')
 
