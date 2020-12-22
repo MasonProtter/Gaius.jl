@@ -23,7 +23,7 @@ InteractiveUtils.versioninfo()
     end
 end
 
-@time @testset "ComplexF64  Matrix-Vector" begin
+@time @testset "ComplexF64 Matrix-Vector" begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
             u = zeros(ComplexF64, n)   |> StructArrays.StructArray
@@ -71,7 +71,6 @@ end
     end
 end
 
-
 @time @testset "Float64 CoVector-Matrix" begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
@@ -101,9 +100,6 @@ end
         end
     end
 end
-
-
-
 
 @time @testset "ComplexFloat64 Matrix-Matrix" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
@@ -190,15 +186,14 @@ end
     end
 end
 
-
 @time @testset "Int64 Matrix-Matrix" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
-            C1 = zeros(Int, n, m)
-            C2 = zeros(Int, n, m)
-            A  = rand(-100:100, n, k)
-            B  = rand(-100:100, k, m)
+            C1 = zeros(Int64, n, m)
+            C2 = zeros(Int64, n, m)
+            A  = rand(Int64.(-100:100), n, k)
+            B  = rand(Int64.(-100:100), k, m)
             At = copy(A')
             Bt = copy(B')
 
@@ -210,7 +205,6 @@ end
         end
     end
 end
-
 
 @time @testset "Int32 Matrix-Matrix" begin
     for sz ∈ [10, 50, 100, 200, 400, 1000]
