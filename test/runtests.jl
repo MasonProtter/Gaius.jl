@@ -1,13 +1,20 @@
-using Gaius
-using LinearAlgebra
-using Random
-using Test
+import Gaius
 
 import BenchmarkTools
 import InteractiveUtils
+import LinearAlgebra
+import Random
 import StructArrays
+import Test
 
-InteractiveUtils.versioninfo()
+using Gaius: blocked_mul, blocked_mul!
+using InteractiveUtils: versioninfo
+using LinearAlgebra: mul!
+using Random: shuffle
+using StructArrays: StructArray
+using Test: @test, @testset
+
+versioninfo()
 
 @info("Running tests with $(Threads.nthreads()) threads")
 
@@ -26,9 +33,9 @@ end
 @time @testset "ComplexF64 Matrix-Vector" begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
-            u = zeros(ComplexF64, n)   |> StructArrays.StructArray
-            A = rand(ComplexF64, n, m) |> StructArrays.StructArray
-            v = rand(ComplexF64, m)    |> StructArrays.StructArray
+            u = zeros(ComplexF64, n)   |> StructArray
+            A = rand(ComplexF64, n, m) |> StructArray
+            v = rand(ComplexF64, m)    |> StructArray
             @test blocked_mul!(u, A, v) ≈ collect(A) * collect(v)
             @test u ≈ blocked_mul(A, v)
         end
@@ -62,9 +69,9 @@ end
 @time @testset "ComplexInt32 Matrix-Vector" begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
-            u = zeros(Complex{Int32}, n) |> StructArrays.StructArray
-            A = StructArrays.StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
-            v = StructArrays.StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))
+            u = zeros(Complex{Int32}, n) |> StructArray
+            A = StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
+            v = StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))
             @test blocked_mul!(u, A, v) == collect(A) * collect(v)
             @test u == blocked_mul(A, v)
         end
@@ -89,9 +96,9 @@ end
 @time @testset "ComplexF32 CoVector-Matrix" begin
     for n ∈ [10, 100, 500, 2000]
         for m ∈ [10, 100, 2000]
-            u = zeros(Complex{Float32}, m)   |> StructArrays.StructArray
-            A = rand(Complex{Float32}, n, m) |> StructArrays.StructArray
-            v = rand(Complex{Float32}, n)    |> StructArrays.StructArray
+            u = zeros(Complex{Float32}, m)   |> StructArray
+            A = rand(Complex{Float32}, n, m) |> StructArray
+            v = rand(Complex{Float32}, n)    |> StructArray
             @test blocked_mul!(u', v', A) ≈ v' * A
             @test u' ≈ blocked_mul(v', A)
 
@@ -105,10 +112,10 @@ end
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m)" begin
-            C1 = StructArrays.StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
-            C2 = StructArrays.StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
-            A  = StructArrays.StructArray{ComplexF64}((randn(n, k), randn(n, k)))
-            B  = StructArrays.StructArray{ComplexF64}((randn(k, m), randn(k, m)))
+            C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
+            C2 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
+            A  = StructArray{ComplexF64}((randn(n, k), randn(n, k)))
+            B  = StructArray{ComplexF64}((randn(k, m), randn(k, m)))
 
             @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1
@@ -117,10 +124,10 @@ end
     for sz ∈ [10, 50, 100, 200, 400, 1000]
         n, k, m = shuffle([sz + rand(-5:5), sz + rand(-5:5), 10])
         @testset "($n × $k) × ($k × $m)" begin
-            C1 = StructArrays.StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
-            C2 = StructArrays.StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
-            A  = StructArrays.StructArray{ComplexF64}((randn(n, k), randn(n, k)))
-            B  = StructArrays.StructArray{ComplexF64}((randn(k, m), randn(k, m)))
+            C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
+            C2 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
+            A  = StructArray{ComplexF64}((randn(n, k), randn(n, k)))
+            B  = StructArray{ComplexF64}((randn(k, m), randn(k, m)))
 
             @test blocked_mul!(C1, A, B) ≈ mul!(C2, A, B)
             @test blocked_mul(A, B) ≈ C1

@@ -1,4 +1,3 @@
-
 PtrArray(M::AbstractMatrix) = PtrMatrix(M)
 PtrArray(v::AbstractVector) = v#PtrVector(v)
 PtrArray(v::Adjoint{T, <:AbstractVector}) where {T} = v#PointerAdjointVector(v)
@@ -33,8 +32,6 @@ Base.@propagate_inbounds function Base.setindex!(A::PointerMatrix, v, i::Integer
 end
 Base.IndexStyle(::Type{<:PointerMatrix}) = IndexCartesian()
 
-
-
 # This machinery below might not actually be needed.
 
 # struct PointerVector{T,P <: AbstractStridedPointer} <: AbstractVector{T}
@@ -54,8 +51,6 @@ Base.IndexStyle(::Type{<:PointerMatrix}) = IndexCartesian()
 # end
 
 # Base.IndexStyle(::Type{<:PointerVector}) = IndexLinear()
-
-
 
 # struct PointerAdjointVector{T,P <: AbstractStridedPointer} <: AbstractMatrix{T}
 #     ptr::P
@@ -80,8 +75,6 @@ Base.IndexStyle(::Type{<:PointerMatrix}) = IndexCartesian()
 # end
 
 # Base.IndexStyle(::Type{<:PointerAdjointVector}) = IndexLinear()
-
-
 
 # struct PointerTransposeVector{T,P <: AbstractStridedPointer} <: AbstractMatrix{T}
 #     ptr::P
