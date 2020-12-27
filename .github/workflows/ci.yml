@@ -7,6 +7,9 @@ on:
     branches:
       - master
     tags: '*'
+defaults:
+  run:
+    shell: bash
 jobs:
   test:
     name: Julia ${{ matrix.version }}/${{ matrix.os }}/${{ matrix.arch }}/${{ matrix.threads }} threads/${{ github.event_name }}
@@ -46,6 +49,7 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
+      - run: julia --project -e 'import Pkg; Pkg.add(Pkg.PackageSpec(url = "https://github.com/DilumAluthge/LoopVectorization.jl", rev = "dpa/avx-coverage"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         env:
