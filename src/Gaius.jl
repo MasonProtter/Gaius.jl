@@ -20,11 +20,11 @@ export blocked_mul!
 const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
 
 include("macros.jl")
-include("pointermatrix.jl")
-include("type-aliases.jl")
+include("types.jl")
 
-include("block-operations.jl")
+include("block_operations.jl")
 include("kernels.jl")
 include("matmul.jl")
+include("pointermatrix.jl")
 
 end # module Gaius
