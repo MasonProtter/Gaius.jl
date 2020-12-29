@@ -3,11 +3,6 @@ PtrArray(v::AbstractVector) = v#PtrVector(v)
 PtrArray(v::Adjoint{T, <:AbstractVector}) where {T} = v#PointerAdjointVector(v)
 PtrArray(v::Transpose{T, <:AbstractVector}) where {T} = v#PointerTransposeVector(v)
 
-struct PointerMatrix{T,P <: AbstractStridedPointer} <: DenseMatrix{T}
-    ptr::P
-    size::Tuple{Int,Int}
-    PointerMatrix(ptr::P, size::Tuple{Int,Int}) where {T, P <: AbstractStridedPointer{T}} = new{T,P}(ptr, size)
-end
 @inline PtrMatrix(A::AbstractMatrix) = PointerMatrix(stridedpointer(A), size(A))
 @inline Base.pointer(A::PointerMatrix) = pointer(A.ptr)
 @inline Base.size(A::PointerMatrix) = A.size
