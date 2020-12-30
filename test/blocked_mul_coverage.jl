@@ -1,6 +1,6 @@
 @time @testset "Float64 Matrix-Vector (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(n)
             A = rand(n, m)
             v = rand(m)
@@ -11,8 +11,8 @@
 end
 
 @time @testset "ComplexF64 Matrix-Vector (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(ComplexF64, n)   |> StructArray
             A = rand(ComplexF64, n, m) |> StructArray
             v = rand(ComplexF64, m)    |> StructArray
@@ -23,8 +23,8 @@ end
 end
 
 @time @testset "Float32 Matrix-Vector (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(Float32, n)
             A = rand(Float32, n, m)
             v = rand(Float32, m)
@@ -35,8 +35,8 @@ end
 end
 
 @time @testset "Int64 Matrix-Vector (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(Int, n)
             A = rand(-20:20, n, m)
             v = rand(-20:20, m)
@@ -47,8 +47,8 @@ end
 end
 
 @time @testset "ComplexInt32 Matrix-Vector (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(Complex{Int32}, n) |> StructArray
             A = StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
             v = StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))
@@ -59,8 +59,8 @@ end
 end
 
 @time @testset "Float64 CoVector-Matrix (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(m)
             A = rand(n, m)
             v = rand(n)
@@ -74,8 +74,8 @@ end
 end
 
 @time @testset "ComplexF32 CoVector-Matrix (coverage)" begin
-    for n ∈ [10]
-        for m ∈ [10]
+    for n ∈ [200]
+        for m ∈ [200]
             u = zeros(Complex{Float32}, m)   |> StructArray
             A = rand(Complex{Float32}, n, m) |> StructArray
             v = rand(Complex{Float32}, n)    |> StructArray
@@ -89,7 +89,7 @@ end
 end
 
 @time @testset "ComplexFloat64 Matrix-Matrix (coverage)" begin
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
@@ -101,7 +101,7 @@ end
             @test blocked_mul(A, B) ≈ C1
         end
     end
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = shuffle([sz + rand(-5:5), sz + rand(-5:5), 10])
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = StructArray{ComplexF64}((zeros(n, m), zeros(n, m)))
@@ -116,7 +116,7 @@ end
 end
 
 @time @testset "Float64 Matrix-Matrix (coverage)" begin
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = zeros(n, m)
@@ -134,7 +134,7 @@ end
             fill!(C1, NaN); @test blocked_mul!(C1, At', Bt') ≈ C2
         end
     end
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = shuffle([sz + rand(-5:5), sz + rand(-5:5), 10])
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = zeros(n, m)
@@ -154,7 +154,7 @@ end
 end
 
 @time @testset "Float32 Matrix-Matrix (coverage)" begin
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = zeros(Float32, n, m)
@@ -174,7 +174,7 @@ end
 end
 
 @time @testset "Int64 Matrix-Matrix (coverage)" begin
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = zeros(Int64, n, m)
@@ -194,7 +194,7 @@ end
 end
 
 @time @testset "Int32 Matrix-Matrix (coverage)" begin
-    for sz ∈ [10]
+    for sz ∈ [205]
         n, k, m = (sz .+ rand(-5:5, 3))
         @testset "($n × $k) × ($k × $m) (coverage)" begin
             C1 = zeros(Int32, n, m)
