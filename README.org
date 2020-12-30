@@ -1,10 +1,10 @@
 * Gaius.jl
 
 #+BEGIN_CENTER
-/Because Caesar.jl was taken/ 
+/Because Caesar.jl was taken/
 #+END_CENTER
 
-#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3ACI"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI/badge.svg"></a> <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3A%22CI+%28Julia+nightly%29%22"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI%20(Julia%20nightly)/badge.svg"></a> <a href="https://codecov.io/gh/MasonProtter/Gaius.jl"><img src="https://codecov.io/gh/MasonProtter/Gaius.jl/branch/master/graph/badge.svg"></a>
+#+HTML: <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3ACI"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI/badge.svg" alt="Continuous Integration" title="Continuous Integration"></a> <a href="https://github.com/MasonProtter/Gaius.jl/actions?query=workflow%3A%22CI+%28Julia+nightly%29%22"><img src="https://github.com/MasonProtter/Gaius.jl/workflows/CI%20(Julia%20nightly)/badge.svg" alt="Continuous Integration (Julia nightly)" title="Continuous Integration (Julia nightly)"></a> <a href="https://codecov.io/gh/MasonProtter/Gaius.jl"><img src="https://codecov.io/gh/MasonProtter/Gaius.jl/branch/master/graph/badge.svg" alt="Code Coverage" title="Code Coverage"></a>
 
 Gaius.jl is a multi-threaded BLAS-like library using a
 divide-and-conquer strategy to parallelism, and built on top of the
@@ -15,8 +15,7 @@ may be fearlessly nested inside multi-threaded julia programs.
 Gaius is *not* stable or well tested. Only use it if you're
 adventurous.
 
-
-Note: Gaius.jl is not actively maintained and I do not anticipate doing further work on it. There are other, more promising projects that may result in a scalable, multi-threaded pure julia BLAS library such as [[https://github.com/mcabbott/Tullio.jl][Tullio.jl]] and [[https://github.com/chriselrod/PaddedMatrices.jl][PaddedMatrices.jl]]. 
+Note: Gaius.jl is not actively maintained and I do not anticipate doing further work on it. There are other, more promising projects that may result in a scalable, multi-threaded pure julia BLAS library such as [[https://github.com/mcabbott/Tullio.jl][Tullio.jl]] and [[https://github.com/chriselrod/PaddedMatrices.jl][PaddedMatrices.jl]].
 
 However, you may find this library useful as relatively simple playground for learning about the implementation of linear algebra routines.
 
@@ -27,7 +26,7 @@ Int32, Int16}}~, and ~StructArray{Complex}~. Support for other other
 commonly encountered numeric ~struct~ types such as ~Rational~ and
 ~Dual~ numbers is planned.
 
-*** Using Gaius.jl 
+*** Using Gaius.jl
 #+HTML: <details><summary>Click me!</summary>
 #+HTML: <p>
 Gaius.jl exports the functions ~blocked_mul~ and
@@ -79,7 +78,7 @@ Multi-threading in Gaius.jl works by recursively splitting matrices
 into sub-blocks to operate on. You can change the matrix sub-block
 size by calling ~mul!~ with the ~block_size~ keyword argument. If left
 unspecified, Gaius will use a (very rough) heuristic to choose a good
-block size based on the size of the input matrices. 
+block size based on the size of the input matrices.
 
 The size heuristics I use are likely not yet optimal for everyone's
 machines.
@@ -109,18 +108,18 @@ julia> begin
            @btime blocked_mul!($SC, $SA, $SB)
            @btime         mul!($C, $A, $B)
            SC ≈ C
-       end 
+       end
    515.587 μs (80 allocations: 10.53 KiB)
    546.481 μs (0 allocations: 0 bytes)
  true
 #+END_SRC
 #+HTML: </details>
 #+HTML: </p>
-*** Benchmarks 
-**** Floating Point Performance 
+*** Benchmarks
+**** Floating Point Performance
 #+HTML: <details><summary>Click me!</summary>
 #+HTML: <p>
-The following benchmarks were run on this 
+The following benchmarks were run on this
 #+BEGIN_SRC julia
 julia> versioninfo()
 Julia Version 1.4.0-rc2.0
@@ -142,7 +141,7 @@ analogous benchmarks on a machine with an AVX512 instruction set and / or [[http
 
 [[file:assets/F32_mul.png]]
 
-/Note that these are log-log plots/ 
+/Note that these are log-log plots/
 
 
 Gaius.jl outperforms [[https://github.com/xianyi/OpenBLAS][OpenBLAS]] over a large range of matrix sizes, but
@@ -160,7 +159,7 @@ competeing relatively evenly against OpenBLAS operating on ~Complex{Float64}~ ar
 
 [[file:assets/C64_mul.png]]
 
-I think with some work, we can do much better. 
+I think with some work, we can do much better.
 #+HTML: </details>
 #+HTML: </p>
 **** Integer Performance
@@ -176,7 +175,7 @@ multi-threaded.
 
 [[file:assets/I32_mul.png]]
 
-/Note that these are log-log plots/ 
+/Note that these are log-log plots/
 
 Benchmarks performed on am achine with the AVX512 instruction set show
 an [[https://github.com/chriselrod/LoopVectorization.jl][even greater performance gain.]]
