@@ -1,0 +1,1 @@
+const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
