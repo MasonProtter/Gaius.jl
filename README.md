@@ -31,6 +31,16 @@ scalable, multi-threaded pure Julia BLAS library such as
 However, you may find this library useful as a relatively simple playground
 for learning about the implementation of linear algebra routines.
 
+## Quick Start
+
+```julia
+julia> using Gaius
+
+julia> blocked_mul(A, B) # multiply `A` and `B` and return the result
+
+julia> blocked_mul!(C, A, B) # multiply `A` and `B` and store the result in `C`
+```
+
 ## Matrix Multiplication
 
 Currently, fast, native matrix-multiplication is only implemented
@@ -38,16 +48,6 @@ between matrices of types `Matrix{<:Union{Float64, Float32, Int64,
 Int32, Int16}}`, and `StructArray{Complex}`. Support for other other
 commonly encountered numeric `struct` types such as `Rational` and
 `Dual` numbers is planned.
-
-### Quick Start
-
-```julia
-julia> using Gaius
-
-julia> C = blocked_mul(A, B)
-
-julia> blocked_mul!(F, D, E)
-```
 
 ### Using Gaius
 
