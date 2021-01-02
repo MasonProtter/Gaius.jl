@@ -246,7 +246,7 @@ with this strategy, but doing so should be relatively straightforward.
 If you use only the functions `Gaius.blocked_mul!` and
 `Gaius.blocked_mul`, automatic array size-checking will occur before
 the matrix multiplication begins. This can be turned off in
-`blocked_mul!` by calling `Gaius.blocked_mul!(C, A, B, sizecheck=false)`, in
+`blocked_mul!` by calling `Gaius.blocked_mul!(C, A, B; sizecheck=false)`, in
 which case no sizechecks will occur on the arrays before the matrix
 multiplication occurs and all sorts of bad, segfaulty things can
 happen.
