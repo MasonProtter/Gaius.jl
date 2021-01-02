@@ -15,7 +15,7 @@
 [codecov-img]: https://codecov.io/gh/MasonProtter/Gaius.jl/branch/master/graph/badge.svg "Code Coverage"
 
 Gaius.jl is a multi-threaded BLAS-like library using a divide-and-conquer
-strategy to parallelism, and built on top of the *fantastic*
+strategy to parallelism, and built on top of the **fantastic**
 [LoopVectorization.jl](https://github.com/chriselrod/LoopVectorization.jl).
 Gaius spawns threads using Julia's depth first parallel task runtime and so
 Gaius's routines may be fearlessly nested inside multi-threaded Julia programs.
