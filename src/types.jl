@@ -15,3 +15,14 @@ const MatTypes{T}   = Union{MatTypesC{T}, MatTypesR{T}}
 const VecTypes{T}   = Union{Vector{T}, SubArray{T, 1, <:Array}}
 const CoVecTypes{T} = Union{Adjoint{T,   <:VecTypes{T}},
                             Transpose{T, <:VecTypes{T}}}
+
+abstract type Threading end
+
+struct Multithreaded <: Threading
+end
+
+struct Singlethreaded <: Threading
+end
+
+const multithreaded = Multithreaded()
+const singlethreaded = Singlethreaded()

@@ -36,10 +36,27 @@ for learning about the implementation of linear algebra routines.
 ```julia
 julia> using Gaius
 
-julia> blocked_mul(A, B) # multiply `A` and `B` and return the result
+julia> Gaius.mul!(C, A, B) # (multi-threaded) multiply A×B and store the result in C (overwriting the contents of C)
 
-julia> blocked_mul!(C, A, B) # multiply `A` and `B` and store the result in `C`
+julia> Gaius.mul(A, B) # (multi-threaded) multiply A×B and return the result
+
+julia> Gaius.mul_single_threaded!(C, A, B) # (single-threaded) multiply A×B and store the result in C (overwriting the contents of C)
+
+julia> Gaius.mul_single_threaded(A, B) # (single-threaded) multiply A×B and return the result
 ```
+
+Remember to start Julia with multiple threads with e.g. one of the following:
+- `julia -t auto`
+- `julia -t 4`
+- Set the `JULIA_NUM_THREADS` environment variable to `4` **before** starting Julia
+
+The functions in this list are part of the public API of Gaius:
+- `mul!`
+- `mul`
+- `mul_single_threaded!`
+- `mul_single_threaded`
+
+All other functions are internal (private).
 
 ## Matrix Multiplication
 
@@ -55,11 +72,15 @@ commonly encountered numeric `struct` types such as `Rational` and
 
 <summary>Click to expand:</summary>
 
-Gaius exports the functions `blocked_mul` and
-`blocked_mul!`. `blocked_mul` is to be used like the regular `*`
-operator between two matrices whereas `blocked_mul!` takes in three
+Gaius defines the public functions `Gaius.mul` and
+`Gaius.mul!`. `Gaius.mul` is to be used like the regular `*`
+operator between two matrices whereas `Gaius.mul!` takes in three
 matrices `C, A, B` and stores `A*B` in `C` overwriting the contents of
 `C`.
+
+The functions `Gaius.mul` and `Gaius.mul!` use multithreading. If you
+want to run the single-threaded variants, use `Gais.mul_single_threaded` and
+`Gaius.mul_single_threaded!` respectively.
 
 ```julia
 julia> using Gaius, BenchmarkTools, LinearAlgebra
@@ -69,7 +90,7 @@ julia> A, B, C = rand(104, 104), rand(104, 104), zeros(104, 104);
 julia> @btime mul!($C, $A, $B); # from LinearAlgebra
   68.529 μs (0 allocations: 0 bytes)
 
-julia> @btime blocked_mul!($C, $A, $B); #from Gaius
+julia> @btime mul!($C, $A, $B); #from Gaius
   31.220 μs (80 allocations: 10.20 KiB)
 ```
 
@@ -81,7 +102,7 @@ julia> A, B = rand(104, 104), rand(104, 104);
 julia> @btime $A * $B;
   68.949 μs (2 allocations: 84.58 KiB)
 
-julia> @btime let * = Gaius.blocked_mul # Locally use Gaius.blocked_mul as * operator.
+julia> @btime let * = Gaius.mul # Locally use Gaius.mul as * operator.
            $A * $B
        end;
   32.950 μs (82 allocations: 94.78 KiB)
@@ -134,7 +155,7 @@ julia> begin
            SB =  StructArray(B)
            SC = StructArray(C)
 
-           @btime blocked_mul!($SC, $SA, $SB)
+           @btime mul!($SC, $SA, $SB)
            @btime         mul!($C, $A, $B)
            SC ≈ C
        end
@@ -243,10 +264,11 @@ with this strategy, but doing so should be relatively straightforward.
 
 -Gaius Julius Caesar
 
-If you use only the functions `Gaius.blocked_mul!` and
-`Gaius.blocked_mul`, automatic array size-checking will occur before
+If you use only the functions `Gaius.mul!`, `Gaius.mul`,
+`Gaius.mul_single_threaded!`, and `Gaius.mul_single_threaded`,
+automatic array size-checking will occur before
 the matrix multiplication begins. This can be turned off in
-`blocked_mul!` by calling `Gaius.blocked_mul!(C, A, B; sizecheck=false)`, in
+`mul!` by calling `Gaius.mul!(C, A, B; sizecheck=false)`, in
 which case no sizechecks will occur on the arrays before the matrix
 multiplication occurs and all sorts of bad, segfaulty things can
 happen.
