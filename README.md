@@ -51,10 +51,10 @@ Remember to start Julia with multiple threads with e.g. one of the following:
 - Set the `JULIA_NUM_THREADS` environment variable to `4` **before** starting Julia
 
 The functions in this list are part of the public API of Gaius:
-- `mul!`
-- `mul`
-- `mul_single_threaded!`
-- `mul_single_threaded`
+- `Gaius.mul!`
+- `Gaius.mul`
+- `Gaius.mul_single_threaded!`
+- `Gaius.mul_single_threaded`
 
 All other functions are internal (private).
 
