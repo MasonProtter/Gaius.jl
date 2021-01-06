@@ -72,15 +72,15 @@ commonly encountered numeric `struct` types such as `Rational` and
 
 <summary>Click to expand:</summary>
 
-Gaius exports the functions `mul` and
-`mul!`. `mul` is to be used like the regular `*`
-operator between two matrices whereas `mul!` takes in three
+Gaius defines the public functions `Gaius.mul` and
+`Gaius.mul!`. `Gaius.mul` is to be used like the regular `*`
+operator between two matrices whereas `Gaius.mul!` takes in three
 matrices `C, A, B` and stores `A*B` in `C` overwriting the contents of
 `C`.
 
-The functions `mul` and `mul!` use multithreading. If you
-want to run the single-threaded variants, use `Gais.blocked_mul` and
-`Gaius.blocked_mul!` respectively.
+The functions `Gaius.mul` and `Gaius.mul!` use multithreading. If you
+want to run the single-threaded variants, use `Gais.mul_single_threaded` and
+`Gaius.mul_single_threaded!` respectively.
 
 ```julia
 julia> using Gaius, BenchmarkTools, LinearAlgebra
