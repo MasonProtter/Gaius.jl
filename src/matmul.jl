@@ -55,7 +55,7 @@ function _mul_add!(threading::Threading, C::VecTypes{T}, A::MatTypes{T}, B::VecT
 end
 
 function _mul!(threading::Threading, C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatTypes{T}, sz) where {T<:Eltypes}
-    n, k, m = 1, size(A, 1), length(C)
+    n, k, m = 1, size(A, 2), length(C)
     if     k >= sz+8 && m >= sz+8
         block_covec_mat_mul!(threading, C, A, B, sz)
     elseif k >= sz+8 && m <  sz+8
@@ -66,7 +66,7 @@ function _mul!(threading::Threading, C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatT
 end
 
 function _mul_add!(threading::Threading, C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatTypes{T}, sz, ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
-    n, k, m = 1, size(A, 1), length(C)
+    n, k, m = 1, size(A, 2), length(C)
     if     k >= sz+8 && m >= sz+8
         block_covec_mat_mul!(threading, C, A, B, sz, Val(factor))
     elseif k >= sz+8 && m <  sz+8
