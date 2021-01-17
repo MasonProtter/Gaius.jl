@@ -36,4 +36,13 @@
         Gaius.add_gemm_kernel!(C, A, B, Val(1))
         @test C == A * B
     end
+
+    @testset begin
+        A = [1 2; 3 4]
+        B = [5 6; 7 8]
+        C = zeros(Int, 2, 2)
+        Gaius.add_gemm_kernel!(C, A, B, Val(3))
+        @test C == 3 * A * B
+    end
+
 end
