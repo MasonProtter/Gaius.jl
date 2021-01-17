@@ -1,4 +1,4 @@
-@testset "kernels" begin
+@time @testset "kernels" begin
     @testset begin
         A = [1 2; 3 4]
         B = [5 6; 7 8]
@@ -27,5 +27,13 @@
         Gaius.add_gemm_kernel!(u1, v, A)
         LinearAlgebra.mul!(u2, v, A)
         @test u1 == u2
+    end
+
+    @testset begin
+        A = [1 2; 3 4]
+        B = [5 6; 7 8]
+        C = zeros(Int, 2, 2)
+        Gaius.add_gemm_kernel!(C, A, B, Val(1))
+        @test C == A * B
     end
 end

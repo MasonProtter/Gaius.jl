@@ -13,11 +13,13 @@ using Test: @testset, @test, @test_throws
 
 include("test_suite_preamble.jl")
 
+include("block_operations.jl")
 include("public_mul_coverage.jl")
 include("kernels.jl")
-include("matmul.jl")
+include("matmul_coverage.jl")
 include("pointermatrix.jl")
 
 if !coverage
     include("public_mul.jl")
+    include("matmul.jl")
 end

@@ -178,6 +178,8 @@ end
             @test C1 ≈ C2
 
             @test Gaius.mul_single_threaded(A, B) ≈ C0
+
+            @test Gaius.mul(A, B) ≈ C0
         end
     end
 end
@@ -308,6 +310,11 @@ end
             fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, At', B)   == C0
             fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, A,   Bt') == C0
             fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, At', Bt') == C0
+
+            @test Gaius.mul(A,   B) == C0
+            @test Gaius.mul(At', B) == C0
+            @test Gaius.mul(A,   Bt') == C0
+            @test Gaius.mul(At', Bt') == C0
         end
     end
 end
