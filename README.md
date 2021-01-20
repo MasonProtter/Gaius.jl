@@ -40,9 +40,9 @@ julia> Gaius.mul!(C, A, B) # (multi-threaded) multiply A×B and store the result
 
 julia> Gaius.mul(A, B) # (multi-threaded) multiply A×B and return the result
 
-julia> Gaius.mul_single_threaded!(C, A, B) # (single-threaded) multiply A×B and store the result in C (overwriting the contents of C)
+julia> Gaius.mul_serial!(C, A, B) # (single-threaded) multiply A×B and store the result in C (overwriting the contents of C)
 
-julia> Gaius.mul_single_threaded(A, B) # (single-threaded) multiply A×B and return the result
+julia> Gaius.mul_serial(A, B) # (single-threaded) multiply A×B and return the result
 ```
 
 Remember to start Julia with multiple threads with e.g. one of the following:
@@ -53,8 +53,8 @@ Remember to start Julia with multiple threads with e.g. one of the following:
 The functions in this list are part of the public API of Gaius:
 - `Gaius.mul!`
 - `Gaius.mul`
-- `Gaius.mul_single_threaded!`
-- `Gaius.mul_single_threaded`
+- `Gaius.mul_serial!`
+- `Gaius.mul_serial`
 
 All other functions are internal (private).
 
@@ -79,8 +79,8 @@ matrices `C, A, B` and stores `A*B` in `C` overwriting the contents of
 `C`.
 
 The functions `Gaius.mul` and `Gaius.mul!` use multithreading. If you
-want to run the single-threaded variants, use `Gais.mul_single_threaded` and
-`Gaius.mul_single_threaded!` respectively.
+want to run the single-threaded variants, use `Gais.mul_serial` and
+`Gaius.mul_serial!` respectively.
 
 ```julia
 julia> using Gaius, BenchmarkTools, LinearAlgebra
@@ -265,7 +265,7 @@ with this strategy, but doing so should be relatively straightforward.
 -Gaius Julius Caesar
 
 If you use only the functions `Gaius.mul!`, `Gaius.mul`,
-`Gaius.mul_single_threaded!`, and `Gaius.mul_single_threaded`,
+`Gaius.mul_serial!`, and `Gaius.mul_serial`,
 automatic array size-checking will occur before
 the matrix multiplication begins. This can be turned off in
 `mul!` by calling `Gaius.mul!(C, A, B; sizecheck=false)`, in
