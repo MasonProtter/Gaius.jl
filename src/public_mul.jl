@@ -23,8 +23,8 @@ This function is part of the public API of Gaius.
 function mul end
 
 """
-    mul_single_threaded(A, B)
-    mul_single_threaded(A, B; kwargs...)
+    mul_serial(A, B)
+    mul_serial(A, B; kwargs...)
 
 Multiply A×B and return the result.
 
@@ -32,11 +32,11 @@ This function will run single-threaded.
 
 This function is part of the public API of Gaius.
 """
-function mul_single_threaded end
+function mul_serial end
 
 """
-    mul_single_threaded!(C, A, B)
-    mul_single_threaded!(C, A, B; kwargs...)
+    mul_serial!(C, A, B)
+    mul_serial!(C, A, B; kwargs...)
 
 Multiply A×B and store the result in C (overwriting the contents of C).
 
@@ -44,7 +44,7 @@ This function will run single-threaded.
 
 This function is part of the public API of Gaius.
 """
-function mul_single_threaded! end
+function mul_serial! end
 
 function mul(A::MatTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
@@ -53,10 +53,10 @@ function mul(A::MatTypes, B::MatTypes)
     C
 end
 
-function mul_single_threaded(A::MatTypes, B::MatTypes)
+function mul_serial(A::MatTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Matrix{T}(undef, size(A,1), size(B,2))
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -67,10 +67,10 @@ function mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}) where
     C
 end
 
-function mul_single_threaded(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
+function mul_serial(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
     C = StructArray{Complex{T}}((Matrix{T}(undef, size(A, 1), size(B,2)),
                                  Matrix{T}(undef, size(A, 1), size(B,2))))
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -84,7 +84,7 @@ function mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
     C
 end
 
-function mul_single_threaded!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
+function mul_serial!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
                               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
@@ -112,7 +112,7 @@ function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructA
     C
 end
 
-function mul_single_threaded!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
+function mul_serial!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
                               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
@@ -152,7 +152,7 @@ function mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
     C
 end
 
-function mul_single_threaded!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
+function mul_serial!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                               A::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                               B::StructArray{Complex{T}};
                               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
@@ -194,7 +194,7 @@ function mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
     C
 end
 
-function mul_single_threaded!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
+function mul_serial!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                               A::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                               B::StructArray{Complex{T}};
                               block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
@@ -221,10 +221,10 @@ function mul(A::MatTypes, B::VecTypes)
     C
 end
 
-function mul_single_threaded(A::MatTypes, B::VecTypes)
+function mul_serial(A::MatTypes, B::VecTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Vector{T}(undef, size(A,1))
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -235,10 +235,10 @@ function mul(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1}) where
     C
 end
 
-function mul_single_threaded(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1}) where {T <: Eltypes}
+function mul_serial(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 1}) where {T <: Eltypes}
     C = StructArray{Complex{T}}((Vector{T}(undef, size(A, 1)),
                                  Vector{T}(undef, size(A, 1))))
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -249,10 +249,10 @@ function mul(A::CoVecTypes, B::MatTypes)
     C
 end
 
-function mul_single_threaded(A::CoVecTypes, B::MatTypes)
+function mul_serial(A::CoVecTypes, B::MatTypes)
     T = promote_type(eltype(A), eltype(B))
     C = Vector{T}(undef, size(B,2))'
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -264,11 +264,11 @@ function mul(A::Adjoint{Complex{T}, <:StructArray{Complex{T}, 1}},
     C
 end
 
-function mul_single_threaded(A::Adjoint{Complex{T}, <:StructArray{Complex{T}, 1}},
+function mul_serial(A::Adjoint{Complex{T}, <:StructArray{Complex{T}, 1}},
                              B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
     C = StructArray{Complex{T}}((Vector{T}(undef, size(B, 2)),
                                  Vector{T}(undef, size(B, 2))))'
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end
 
@@ -280,10 +280,10 @@ function mul(A::Transpose{Complex{T}, <:StructArray{Complex{T}, 1}},
     C
 end
 
-function mul_single_threaded(A::Transpose{Complex{T}, <:StructArray{Complex{T}, 1}},
+function mul_serial(A::Transpose{Complex{T}, <:StructArray{Complex{T}, 1}},
                              B::StructArray{Complex{T}, 2}) where {T <: Eltypes}
     C = StructArray{Complex{T}}((Vector{T}(undef, size(B, 2)),
                                  Vector{T}(undef, size(B, 2)))) |> transpose
-    mul_single_threaded!(C, A, B)
+    mul_serial!(C, A, B)
     C
 end

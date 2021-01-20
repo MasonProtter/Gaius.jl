@@ -14,11 +14,11 @@
             A = rand(n, m)
             v = rand(m)
             @test Gaius.mul!(u1, A, v) ≈ A * v
-            @test Gaius.mul_single_threaded!(u2, A, v) ≈ A * v
+            @test Gaius.mul_serial!(u2, A, v) ≈ A * v
             @test u1 ≈ Gaius.mul(A, v)
             @test u2 ≈ Gaius.mul(A, v)
-            @test u1 ≈ Gaius.mul_single_threaded(A, v)
-            @test u2 ≈ Gaius.mul_single_threaded(A, v)
+            @test u1 ≈ Gaius.mul_serial(A, v)
+            @test u2 ≈ Gaius.mul_serial(A, v)
         end
     end
 end
@@ -31,11 +31,11 @@ end
             A = rand(ComplexF64, n, m) |> StructArray
             v = rand(ComplexF64, m)    |> StructArray
             @test Gaius.mul!(u1, A, v) ≈ collect(A) * collect(v)
-            @test Gaius.mul_single_threaded!(u2, A, v) ≈ collect(A) * collect(v)
+            @test Gaius.mul_serial!(u2, A, v) ≈ collect(A) * collect(v)
             @test u1 ≈ Gaius.mul(A, v)
             @test u2 ≈ Gaius.mul(A, v)
-            @test u1 ≈ Gaius.mul_single_threaded(A, v)
-            @test u2 ≈ Gaius.mul_single_threaded(A, v)
+            @test u1 ≈ Gaius.mul_serial(A, v)
+            @test u2 ≈ Gaius.mul_serial(A, v)
         end
     end
 end
@@ -48,11 +48,11 @@ end
             A = rand(Float32, n, m)
             v = rand(Float32, m)
             @test Gaius.mul!(u1, A, v) ≈ A * v
-            @test Gaius.mul_single_threaded!(u2, A, v) ≈ A * v
+            @test Gaius.mul_serial!(u2, A, v) ≈ A * v
             @test u1 ≈ Gaius.mul(A, v)
             @test u2 ≈ Gaius.mul(A, v)
-            @test u1 ≈ Gaius.mul_single_threaded(A, v)
-            @test u2 ≈ Gaius.mul_single_threaded(A, v)
+            @test u1 ≈ Gaius.mul_serial(A, v)
+            @test u2 ≈ Gaius.mul_serial(A, v)
         end
     end
 end
@@ -65,11 +65,11 @@ end
             A = rand(-20:20, n, m)
             v = rand(-20:20, m)
             @test Gaius.mul!(u1, A, v) == A * v
-            @test Gaius.mul_single_threaded!(u2, A, v) == A * v
+            @test Gaius.mul_serial!(u2, A, v) == A * v
             @test u1 == Gaius.mul(A, v)
             @test u2 == Gaius.mul(A, v)
-            @test u1 == Gaius.mul_single_threaded(A, v)
-            @test u2 == Gaius.mul_single_threaded(A, v)
+            @test u1 == Gaius.mul_serial(A, v)
+            @test u2 == Gaius.mul_serial(A, v)
         end
     end
 end
@@ -82,11 +82,11 @@ end
             A = StructArray{Complex{Int32}}((rand(Int32.(-10:10), n, m), rand(Int32.(-10:10), n, m)))
             v = StructArray{Complex{Int32}}((rand(Int32.(-10:10),    m), rand(Int32.(-10:10),    m)))
             @test Gaius.mul!(u1, A, v) == collect(A) * collect(v)
-            @test Gaius.mul_single_threaded!(u2, A, v) == collect(A) * collect(v)
+            @test Gaius.mul_serial!(u2, A, v) == collect(A) * collect(v)
             @test u1 == Gaius.mul(A, v)
             @test u2 == Gaius.mul(A, v)
-            @test u1 == Gaius.mul_single_threaded(A, v)
-            @test u2 == Gaius.mul_single_threaded(A, v)
+            @test u1 == Gaius.mul_serial(A, v)
+            @test u2 == Gaius.mul_serial(A, v)
         end
     end
 end
@@ -99,18 +99,18 @@ end
             A = rand(n, m)
             v = rand(n)
             @test Gaius.mul!(u1', v', A) ≈ v' * A
-            @test Gaius.mul_single_threaded!(u2', v', A) ≈ v' * A
+            @test Gaius.mul_serial!(u2', v', A) ≈ v' * A
             @test u1' ≈ Gaius.mul(v', A)
             @test u2' ≈ Gaius.mul(v', A)
-            @test u1' ≈ Gaius.mul_single_threaded(v', A)
-            @test u2' ≈ Gaius.mul_single_threaded(v', A)
+            @test u1' ≈ Gaius.mul_serial(v', A)
+            @test u2' ≈ Gaius.mul_serial(v', A)
 
             @test Gaius.mul!(transpose(u1), transpose(v), A) ≈ transpose(v) * A
-            @test Gaius.mul_single_threaded!(transpose(u2), transpose(v), A) ≈ transpose(v) * A
+            @test Gaius.mul_serial!(transpose(u2), transpose(v), A) ≈ transpose(v) * A
             @test transpose(u1) ≈ Gaius.mul(transpose(v), A)
             @test transpose(u2) ≈ Gaius.mul(transpose(v), A)
-            @test transpose(u1) ≈ Gaius.mul_single_threaded(transpose(v), A)
-            @test transpose(u2) ≈ Gaius.mul_single_threaded(transpose(v), A)
+            @test transpose(u1) ≈ Gaius.mul_serial(transpose(v), A)
+            @test transpose(u2) ≈ Gaius.mul_serial(transpose(v), A)
         end
     end
 end
@@ -123,18 +123,18 @@ end
             A = rand(Complex{Float32}, n, m) |> StructArray
             v = rand(Complex{Float32}, n)    |> StructArray
             @test Gaius.mul!(u1', v', A) ≈ v' * A
-            @test Gaius.mul_single_threaded!(u2', v', A) ≈ v' * A
+            @test Gaius.mul_serial!(u2', v', A) ≈ v' * A
             @test u1' ≈ Gaius.mul(v', A)
             @test u2' ≈ Gaius.mul(v', A)
-            @test u1' ≈ Gaius.mul_single_threaded(v', A)
-            @test u2' ≈ Gaius.mul_single_threaded(v', A)
+            @test u1' ≈ Gaius.mul_serial(v', A)
+            @test u2' ≈ Gaius.mul_serial(v', A)
 
             @test Gaius.mul!(transpose(u1), transpose(v), A) ≈ transpose(v) * A
-            @test Gaius.mul_single_threaded!(transpose(u2), transpose(v), A) ≈ transpose(v) * A
+            @test Gaius.mul_serial!(transpose(u2), transpose(v), A) ≈ transpose(v) * A
             @test transpose(u1) ≈ Gaius.mul(transpose(v), A)
             @test transpose(u2) ≈ Gaius.mul(transpose(v), A)
-            @test transpose(u1) ≈ Gaius.mul_single_threaded(transpose(v), A)
-            @test transpose(u2) ≈ Gaius.mul_single_threaded(transpose(v), A)
+            @test transpose(u1) ≈ Gaius.mul_serial(transpose(v), A)
+            @test transpose(u2) ≈ Gaius.mul_serial(transpose(v), A)
         end
     end
 end
@@ -151,13 +151,13 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 ≈ C1
             @test C0 ≈ C2
             @test C1 ≈ C2
 
-            @test Gaius.mul_single_threaded(A, B) ≈ C0
+            @test Gaius.mul_serial(A, B) ≈ C0
         end
     end
     for sz ∈ sz_values
@@ -171,13 +171,13 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 ≈ C1
             @test C0 ≈ C2
             @test C1 ≈ C2
 
-            @test Gaius.mul_single_threaded(A, B) ≈ C0
+            @test Gaius.mul_serial(A, B) ≈ C0
 
             @test Gaius.mul(A, B) ≈ C0
         end
@@ -198,21 +198,21 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 ≈ C1
             @test C0 ≈ C2
             @test C1 ≈ C2
 
-            @test Gaius.mul_single_threaded(A, B) ≈ C0
+            @test Gaius.mul_serial(A, B) ≈ C0
 
             fill!(C1, NaN); @test Gaius.mul!(C1, At', B)   ≈ C0
             fill!(C1, NaN); @test Gaius.mul!(C1, A,   Bt') ≈ C0
             fill!(C1, NaN); @test Gaius.mul!(C1, At', Bt') ≈ C0
 
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, At', B)   ≈ C0
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, A,   Bt') ≈ C0
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, At', Bt') ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, At', B)   ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, A,   Bt') ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, At', Bt') ≈ C0
         end
     end
     for sz ∈ sz_values
@@ -228,21 +228,21 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 ≈ C1
             @test C0 ≈ C2
             @test C1 ≈ C2
 
-            @test Gaius.mul_single_threaded(A, B) ≈ C0
+            @test Gaius.mul_serial(A, B) ≈ C0
 
             fill!(C1, NaN); @test Gaius.mul!(C1, At', B)   ≈ C0
             fill!(C1, NaN); @test Gaius.mul!(C1, A,   Bt') ≈ C0
             fill!(C1, NaN); @test Gaius.mul!(C1, At', Bt') ≈ C0
 
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, At', B)   ≈ C0
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, A,   Bt') ≈ C0
-            fill!(C2, NaN); @test Gaius.mul_single_threaded!(C2, At', Bt') ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, At', B)   ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, A,   Bt') ≈ C0
+            fill!(C2, NaN); @test Gaius.mul_serial!(C2, At', Bt') ≈ C0
         end
     end
 end
@@ -261,21 +261,21 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 ≈ C1
             @test C0 ≈ C2
             @test C1 ≈ C2
 
-            @test Gaius.mul_single_threaded(A, B) ≈ C0
+            @test Gaius.mul_serial(A, B) ≈ C0
 
             fill!(C1, NaN32); @test Gaius.mul!(C1, At', B)   ≈ C0
             fill!(C1, NaN32); @test Gaius.mul!(C1, A,   Bt') ≈ C0
             fill!(C1, NaN32); @test Gaius.mul!(C1, At', Bt') ≈ C0
 
-            fill!(C2, NaN32); @test Gaius.mul_single_threaded!(C2, At', B)   ≈ C0
-            fill!(C2, NaN32); @test Gaius.mul_single_threaded!(C2, A,   Bt') ≈ C0
-            fill!(C2, NaN32); @test Gaius.mul_single_threaded!(C2, At', Bt') ≈ C0
+            fill!(C2, NaN32); @test Gaius.mul_serial!(C2, At', B)   ≈ C0
+            fill!(C2, NaN32); @test Gaius.mul_serial!(C2, A,   Bt') ≈ C0
+            fill!(C2, NaN32); @test Gaius.mul_serial!(C2, At', Bt') ≈ C0
         end
     end
 end
@@ -294,22 +294,22 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 == C1
             @test C0 == C2
             @test C1 == C2
 
 
-            @test Gaius.mul_single_threaded(A, B) == C0
+            @test Gaius.mul_serial(A, B) == C0
 
             fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, At', B)   == C0
             fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, A,   Bt') == C0
             fill!(C1, typemax(Int64)); @test Gaius.mul!(C1, At', Bt') == C0
 
-            fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, At', B)   == C0
-            fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, A,   Bt') == C0
-            fill!(C2, typemax(Int64)); @test Gaius.mul_single_threaded!(C2, At', Bt') == C0
+            fill!(C2, typemax(Int64)); @test Gaius.mul_serial!(C2, At', B)   == C0
+            fill!(C2, typemax(Int64)); @test Gaius.mul_serial!(C2, A,   Bt') == C0
+            fill!(C2, typemax(Int64)); @test Gaius.mul_serial!(C2, At', Bt') == C0
 
             @test Gaius.mul(A,   B) == C0
             @test Gaius.mul(At', B) == C0
@@ -333,22 +333,22 @@ end
 
             LinearAlgebra.mul!(C0, A, B)
             Gaius.mul!(C1, A, B)
-            Gaius.mul_single_threaded!(C2, A, B)
+            Gaius.mul_serial!(C2, A, B)
 
             @test C0 == C1
             @test C0 == C2
             @test C1 == C2
 
 
-            @test Gaius.mul_single_threaded(A, B) == C0
+            @test Gaius.mul_serial(A, B) == C0
 
             fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, At', B)   == C0
             fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, A,   Bt') == C0
             fill!(C1, typemax(Int32)); @test Gaius.mul!(C1, At', Bt') == C0
 
-            fill!(C2, typemax(Int32)); @test Gaius.mul_single_threaded!(C2, At', B)   == C0
-            fill!(C2, typemax(Int32)); @test Gaius.mul_single_threaded!(C2, A,   Bt') == C0
-            fill!(C2, typemax(Int32)); @test Gaius.mul_single_threaded!(C2, At', Bt') == C0
+            fill!(C2, typemax(Int32)); @test Gaius.mul_serial!(C2, At', B)   == C0
+            fill!(C2, typemax(Int32)); @test Gaius.mul_serial!(C2, A,   Bt') == C0
+            fill!(C2, typemax(Int32)); @test Gaius.mul_serial!(C2, At', Bt') == C0
         end
     end
 end
