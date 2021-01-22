@@ -1,7 +1,7 @@
 @testset "init" begin
     @testset "_print_num_threads_warning" begin
         withenv("SUPPRESS_GAIUS_WARNING" => "false") do
-            @test_logs (:warn, "The system has 16 threads. However, Julia was started with 1 thread. We recommend starting Julia with 16 threads to take advantage of Gaius's multithreading algorithms. To suppress this warning, set the environment variable SUPPRESS_GAIUS_WARNING=true") match_mode=:any Gaius._print_num_threads_warning(16, 1)
+            @test_logs (:warn, "The system has 16 cores. However, Julia was started with 1 thread. We recommend starting Julia with at least 16 threads to take advantage of Gaius's multithreading algorithms. To suppress this warning, set the environment variable SUPPRESS_GAIUS_WARNING=true") match_mode=:any Gaius._print_num_threads_warning(16, 1)
         end
     end
 
@@ -42,10 +42,17 @@
         @test Gaius._pluralize("foo", "bar", 3) == "bar"
     end
 
-    @testset "_pluralize_nt" begin
-        @test Gaius._pluralize_nt(0) == "0 threads"
-        @test Gaius._pluralize_nt(1) == "1 thread"
-        @test Gaius._pluralize_nt(2) == "2 threads"
-        @test Gaius._pluralize_nt(3) == "3 threads"
+    @testset "_pluralize_threads" begin
+        @test Gaius._pluralize_threads(0) == "0 threads"
+        @test Gaius._pluralize_threads(1) == "1 thread"
+        @test Gaius._pluralize_threads(2) == "2 threads"
+        @test Gaius._pluralize_threads(3) == "3 threads"
+    end
+
+    @testset "_pluralize_cores" begin
+        @test Gaius._pluralize_cores(0) == "0 cores"
+        @test Gaius._pluralize_cores(1) == "1 core"
+        @test Gaius._pluralize_cores(2) == "2 cores"
+        @test Gaius._pluralize_cores(3) == "3 cores"
     end
 end

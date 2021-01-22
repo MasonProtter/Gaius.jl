@@ -4,19 +4,19 @@ function __init__()
 end
 
 function _print_num_threads_warning()
-    sys_nt = Sys.CPU_THREADS
+    sys_nc = VectorizationBase.NUM_CORES
     jl_nt = Threads.nthreads()
-    _print_num_threads_warning(sys_nt, jl_nt)
+    _print_num_threads_warning(sys_nc, jl_nt)
     return nothing
 end
 
-function _print_num_threads_warning(sys_nt::Integer, jl_nt::Integer)
-    if jl_nt < sys_nt
+function _print_num_threads_warning(sys_nc::Integer, jl_nt::Integer)
+    if jl_nt < sys_nc
         if !_is_suppress_warning()
             msg = string(
-                "The system has $(_pluralize_nt(sys_nt)). ",
-                "However, Julia was started with $(_pluralize_nt(jl_nt)). ",
-                "We recommend starting Julia with $(_pluralize_nt(sys_nt)) ",
+                "The system has $(_pluralize_cores(sys_nc)). ",
+                "However, Julia was started with $(_pluralize_threads(jl_nt)). ",
+                "We recommend starting Julia with at least $(_pluralize_threads(sys_nc)) ",
                 "to take advantage of Gaius's multithreading algorithms. ",
                 "To suppress this warning, set the environment variable ",
                 "SUPPRESS_GAIUS_WARNING=true",
@@ -50,6 +50,10 @@ function _pluralize(singular::S, plural::S, n::Integer) where {S <: AbstractStri
     end
 end
 
-function _pluralize_nt(nt::Integer)
+function _pluralize_threads(nt::Integer)
     return "$(nt) $(_pluralize("thread", "threads", nt))"
+end
+
+function _pluralize_cores(nc::Integer)
+    return "$(nc) $(_pluralize("core", "cores", nc))"
 end
