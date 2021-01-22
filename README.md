@@ -23,13 +23,17 @@ Gaius's routines may be fearlessly nested inside multi-threaded Julia programs.
 Gaius is *not* stable or well tested. Only use it if you're adventurous.
 
 Note: Gaius is not actively maintained and I do not anticipate doing further
-work on it. There are other, more promising projects that may result in a
+work on it. However, you may find it useful as a relatively simple playground
+for learning about the implementation of linear algebra routines.
+
+There are other, more promising projects that may result in a
 scalable, multi-threaded pure Julia BLAS library such as:
 1. [Tullio.jl](https://github.com/mcabbott/Tullio.jl)
 2. [Octavian.jl](https://github.com/JuliaLinearAlgebra/Octavian.jl)
 
-However, you may find this library useful as a relatively simple playground
-for learning about the implementation of linear algebra routines.
+In general:
+- Octavian is the most performant.
+- Tullio is the most flexible.
 
 ## Quick Start
 
