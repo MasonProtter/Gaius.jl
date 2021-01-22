@@ -68,9 +68,9 @@ end
 function _mul_add!(threading::Threading, C::CoVecTypes{T}, A::CoVecTypes{T}, B::MatTypes{T}, sz, ::Val{factor} = Val(1)) where {factor, T<:Eltypes}
     n, k, m = 1, size(A, 2), length(C)
     if     k >= sz+8 && m >= sz+8
-        block_covec_mat_mul!(threading, C, A, B, sz, Val(factor))
+        block_covec_mat_mul_add!(threading, C, A, B, sz, Val(factor))
     elseif k >= sz+8 && m <  sz+8
-        block_covec_vec_mul!(threading, C, A, B, sz, Val(factor))
+        block_covec_vec_mul_add!(threading, C, A, B, sz, Val(factor))
     else
         add_gemm_kernel!(C, A, B, Val(factor))
     end
