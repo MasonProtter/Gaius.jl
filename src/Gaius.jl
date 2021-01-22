@@ -28,4 +28,6 @@ include("matmul.jl")
 include("pointermatrix.jl")
 include("public_mul.jl")
 
+include("init.jl") # `Gaius.__init__()` is defined in this file
+
 end # module Gaius
