@@ -6,8 +6,7 @@ end
 function _print_num_threads_warning()
     sys_nc = VectorizationBase.NUM_CORES
     jl_nt = Threads.nthreads()
-    _print_num_threads_warning(sys_nc, jl_nt)
-    return nothing
+    return _print_num_threads_warning(sys_nc, jl_nt)
 end
 
 function _print_num_threads_warning(sys_nc::Integer, jl_nt::Integer)
