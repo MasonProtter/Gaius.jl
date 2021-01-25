@@ -4,7 +4,7 @@ function __init__()
 end
 
 function _print_num_threads_warning()
-    sys_nc = VectorizationBase.NUM_CORES
+    sys_nc = VectorizationBase.num_cores()
     jl_nt = Threads.nthreads()
     return _print_num_threads_warning(sys_nc, jl_nt)
 end

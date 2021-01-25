@@ -14,7 +14,7 @@ using Test: @testset, @test, @test_logs, @test_throws
 
 include("test_suite_preamble.jl")
 
-@info("VectorizationBase.NUM_CORES is $(VectorizationBase.NUM_CORES)")
+@info("VectorizationBase.num_cores() is $(VectorizationBase.num_cores())")
 
 include("block_operations.jl")
 include("public_mul_coverage.jl")

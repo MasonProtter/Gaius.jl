@@ -12,7 +12,7 @@ using LinearAlgebra: Adjoint, Transpose
 using LoopVectorization: @avx
 using StructArrays: StructArray
 using UnsafeArrays: @uviews, UnsafeArray
-using VectorizationBase: AVX512F, AbstractStridedPointer, gesp, vload, vstore!
+using VectorizationBase: AbstractStridedPointer, gesp, vload, vstore!
 
 export t_blocked_mul
 export t_blocked_mul!
