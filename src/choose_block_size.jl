@@ -1,6 +1,6 @@
 function choose_block_size(C, A, B, ::Nothing)
-    if (*)(length(C) |> Int128, length(A) |> Int128, length(B) |> Int128) >= ((3DEFAULT_BLOCK_SIZE) >>> 1)^6
-        DEFAULT_BLOCK_SIZE
+    if (*)(length(C) |> Int128, length(A) |> Int128, length(B) |> Int128) >= ((3default_block_size()) >>> 1)^6
+        default_block_size()
     else
         32
     end

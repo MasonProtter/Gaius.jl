@@ -1,1 +1,1 @@
-const DEFAULT_BLOCK_SIZE = AVX512F ? 96 : 64
+@generated default_block_size() = VectorizationBase.has_feature("x86_64_avx512f") ? 96 : 64

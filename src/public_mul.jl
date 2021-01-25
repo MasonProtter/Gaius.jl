@@ -95,7 +95,7 @@ function mul_serial!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{
 end
 
 function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
-              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
@@ -113,7 +113,7 @@ function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructA
 end
 
 function mul_serial!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
-                              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+                              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
@@ -133,7 +133,7 @@ end
 function mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
               A::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
               B::StructArray{Complex{T}};
-              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
@@ -155,7 +155,7 @@ end
 function mul_serial!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                               A::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                               B::StructArray{Complex{T}};
-                              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+                              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
@@ -177,7 +177,7 @@ end
 function mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
               A::Transpose{Complex{T}, <:StructArray{Complex{T}}},
               B::StructArray{Complex{T}};
-              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
@@ -197,7 +197,7 @@ end
 function mul_serial!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                               A::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                               B::StructArray{Complex{T}};
-                              block_size = DEFAULT_BLOCK_SIZE, sizecheck=true) where {T <: Eltypes}
+                              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
