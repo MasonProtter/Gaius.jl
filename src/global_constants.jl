@@ -1,1 +1,2 @@
-@generated default_block_size() = VectorizationBase.has_feature("x86_64_avx512f") ? 96 : 64
+default_block_size() = Bool(VectorizationBase.has_feature(Val(:x86_64_avx512f))) ? 96 : 64
+
