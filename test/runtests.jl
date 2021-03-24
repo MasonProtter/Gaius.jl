@@ -21,7 +21,6 @@ include("public_mul_coverage.jl")
 include("init.jl")
 include("kernels.jl")
 include("matmul_coverage.jl")
-include("pointermatrix.jl")
 
 if !coverage
     include("public_mul_main.jl")
