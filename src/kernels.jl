@@ -76,9 +76,9 @@ function add_gemm_kernel!(u::VecTypes, A::MatTypes, v::VecTypes, ::Val{factor}) 
     @avx for n ∈ 1:size(A, 1)
         uₙ = zero(eltype(u))
         for k ∈ 1:size(A, 2)
-            uₙ += factor * A[n,k] * v[k]
+            uₙ += A[n,k] * v[k]
         end
-        u[n] += uₙ
+        u[n] += factor * uₙ
     end
 end
 
@@ -118,8 +118,8 @@ function add_gemm_kernel!(u::CoVecTypes, v::CoVecTypes, A::MatTypes, ::Val{facto
     @avx for m ∈ 1:size(A, 2)
         uₘ = zero(eltype(u))
         for k ∈ 1:size(A, 1)
-            uₘ += factor * v[k] * A[k, m]
+            uₘ += v[k] * A[k, m]
         end
-        u[m] += uₘ
+        u[m] += factor * uₘ
     end
 end
