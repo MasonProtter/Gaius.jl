@@ -80,7 +80,7 @@ function mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
 
     _block_size = choose_block_size(C, A, B, block_size)
 
-    GC.@preserve C A B _mul!(multithreaded, PtrArray(C), PtrArray(A), PtrArray(B), _block_size)
+    _mul!(multithreaded, C, A, B, _block_size)
     C
 end
 
@@ -90,7 +90,7 @@ function mul_serial!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{
 
     _block_size = choose_block_size(C, A, B, block_size)
 
-    GC.@preserve C A B _mul!(singlethreaded, PtrArray(C), PtrArray(A), PtrArray(B), _block_size)
+    _mul!(singlethreaded, C, A, B, _block_size)
     C
 end
 
@@ -101,9 +101,9 @@ function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructA
     _block_size = choose_block_size(C, A, B, block_size)
 
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.re), PtrArray(C.im)
-        Are, Aim = PtrArray(A.re), PtrArray(A.im)
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = C.re, C.im
+        Are, Aim = A.re, A.im
+        Bre, Bim = B.re, B.im
         _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -119,9 +119,9 @@ function mul_serial!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::
     _block_size = choose_block_size(C, A, B, block_size)
 
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.re), PtrArray(C.im)
-        Are, Aim = PtrArray(A.re), PtrArray(A.im)
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = (C.re), (C.im)
+        Are, Aim = (A.re), (A.im)
+        Bre, Bim = (B.re), (B.im)
         _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -139,9 +139,9 @@ function mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
     _block_size = choose_block_size(C, A, B, block_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.parent.re'), PtrArray(C.parent.im')
-        Are, Aim = PtrArray(A.parent.re'), PtrArray(A.parent.im')
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = (C.parent.re'), (C.parent.im')
+        Are, Aim = (A.parent.re'), (A.parent.im')
+        Bre, Bim = (B.re), (B.im)
         _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -161,9 +161,9 @@ function mul_serial!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
     _block_size = choose_block_size(C, A, B, block_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.parent.re'), PtrArray(C.parent.im')
-        Are, Aim = PtrArray(A.parent.re'), PtrArray(A.parent.im')
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = (C.parent.re'), (C.parent.im')
+        Are, Aim = (A.parent.re'), (A.parent.im')
+        Bre, Bim = (B.re), (B.im)
         _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -183,9 +183,9 @@ function mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
     _block_size = choose_block_size(C, A, B, block_size)
 
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.parent.re |> transpose), PtrArray(C.parent.im |> transpose)
-        Are, Aim = PtrArray(A.parent.re |> transpose), PtrArray(A.parent.im |> transpose)
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = (C.parent.re |> transpose), (C.parent.im |> transpose)
+        Are, Aim = (A.parent.re |> transpose), (A.parent.im |> transpose)
+        Bre, Bim = (B.re), (B.im)
         _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
@@ -203,9 +203,9 @@ function mul_serial!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
     _block_size = choose_block_size(C, A, B, block_size)
 
     GC.@preserve C A B begin
-        Cre, Cim = PtrArray(C.parent.re |> transpose), PtrArray(C.parent.im |> transpose)
-        Are, Aim = PtrArray(A.parent.re |> transpose), PtrArray(A.parent.im |> transpose)
-        Bre, Bim = PtrArray(B.re), PtrArray(B.im)
+        Cre, Cim = (C.parent.re |> transpose), (C.parent.im |> transpose)
+        Are, Aim = (A.parent.re |> transpose), (A.parent.im |> transpose)
+        Bre, Bim = (B.re), (B.im)
         _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
         _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
         _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
