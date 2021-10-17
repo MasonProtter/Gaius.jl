@@ -75,10 +75,12 @@ function mul_serial(A::StructArray{Complex{T}, 2}, B::StructArray{Complex{T}, 2}
 end
 
 function mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
-              block_size = nothing, sizecheck=true) where {T <: Eltypes}
+              block_size = nothing, singlethread_size = nothing,
+              sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
     _block_size = choose_block_size(C, A, B, block_size)
+    multithreaded = choose_parameter(C, A, B, singlethread_size)
 
     _mul!(multithreaded, C, A, B, _block_size)
     C
@@ -95,10 +97,12 @@ function mul_serial!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{
 end
 
 function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructArray{Complex{T}};
-              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), singlethread_size = nothing,
+              sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
+    multithreaded = choose_parameter(C, A, B, singlethread_size)
 
     GC.@preserve C A B begin
         Cre, Cim = C.re, C.im
@@ -133,10 +137,12 @@ end
 function mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
               A::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
               B::StructArray{Complex{T}};
-              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), singlethread_size = nothing,
+              sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
+    multithreaded = choose_parameter(C, A, B, singlethread_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re'), (C.parent.im')
@@ -177,10 +183,12 @@ end
 function mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
               A::Transpose{Complex{T}, <:StructArray{Complex{T}}},
               B::StructArray{Complex{T}};
-              block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
+              block_size = default_block_size(), singlethread_size = nothing,
+              sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
 
     _block_size = choose_block_size(C, A, B, block_size)
+    multithreaded = choose_parameter(C, A, B, singlethread_size)
 
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re |> transpose), (C.parent.im |> transpose)
