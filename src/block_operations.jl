@@ -354,14 +354,14 @@ function block_mat_vec_mul_add!(::Multithreaded, C::VecTypes, A, B::VecTypes, sz
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
     @inbounds @views begin
-        C11 = C[1:m1,     1:end];
-        C21 = C[m1+1:end, 1:end];
+        C11 = C[1:m1,   ];
+        C21 = C[m1+1:end];
 
         A11 = A[1:m1,     1:k1]; A12 = A[1:m1,     k1+1:end]
         A21 = A[m1+1:end, 1:k1]; A22 = A[m1+1:end, k1+1:end]
 
-        B11 = B[1:k1,     1:end];
-        B21 = B[k1+1:end, 1:end];
+        B11 = B[1:k1,   ];
+        B21 = B[k1+1:end];
     end
     @sync begin
         Threads.@spawn begin
