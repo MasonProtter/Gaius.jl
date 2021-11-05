@@ -1,12 +1,9 @@
 @inline function block_mat_mat_mul!(::Multithreaded, C, A, B, sz)
-    #=
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
-    =#
-    m1 = n1 = k1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
@@ -251,14 +248,11 @@ function block_covec_vec_mul!(threading::Threading, C::VecTypes, A, B::VecTypes,
 end
 
 @inline function block_mat_mat_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
-    #=
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
-    =#
-    m1 = n1 = k1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
@@ -428,13 +422,10 @@ function block_covec_mat_mul_add!(::Singlethreaded, C, A, B, sz, ::Val{factor} =
 end
 
 function block_vec_covec_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
-    #=
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
-    =#
-    m1 = n1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
