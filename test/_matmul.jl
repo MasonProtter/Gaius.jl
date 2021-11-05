@@ -6,7 +6,8 @@
 # `m_values`
 
 @time @testset "_mul!: C, A, B $(testset_name_suffix)" begin
-    for threading in [Gaius.singlethreaded, Gaius.multithreaded]
+    multithreaded = Gaius.Multithreaded(2^24)
+    for threading in [Gaius.singlethreaded, multithreaded]
         for sz in sz_values
             for n in n_values
                 for k in k_values
@@ -27,7 +28,8 @@
 end
 
 @time @testset "_mul!: C::VecTypes, A::MatTypes, B::VecTypes $(testset_name_suffix)" begin
-    for threading in [Gaius.singlethreaded, Gaius.multithreaded]
+    multithreaded = Gaius.Multithreaded(2^24)
+    for threading in [Gaius.singlethreaded, multithreaded]
         for sz in sz_values
             for n in n_values
                 for k in k_values
@@ -48,7 +50,8 @@ end
 end
 
 @time @testset "_mul!: C::CoVecTypes, A::CoVecTypes, B::MatTypes $(testset_name_suffix)" begin
-    for threading in [Gaius.singlethreaded, Gaius.multithreaded]
+    multithreaded = Gaius.Multithreaded(2^24)
+    for threading in [Gaius.singlethreaded, multithreaded]
         for sz in sz_values
             for n in n_values
                 for k in k_values

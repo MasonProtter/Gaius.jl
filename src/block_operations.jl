@@ -1,12 +1,11 @@
-@inline function block_mat_mat_mul!(::Multithreaded, C, A, B, sz)
-    #=
+@inline function block_mat_mat_mul!(multithreaded::Multithreaded, C, A, B, sz)
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_mat_mul!(singlethreaded, C, A, B, sz)
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
-    =#
-    m1 = n1 = k1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
@@ -19,8 +18,7 @@
     end
     @sync begin
         Threads.@spawn begin
-            #_mul!(multithreaded,     C11, A11, B11, sz)
-            gemm_kernel!(C11, A11, B11)
+            _mul!(multithreaded,     C11, A11, B11, sz)
             _mul_add!(multithreaded, C11, A12, B21, sz)
         end
         Threads.@spawn begin
@@ -58,7 +56,9 @@ end
     _mul_add!(singlethreaded, C22, A22, B22, sz)
 end
 
-function block_mat_vec_mul!(::Multithreaded, C, A, B, sz)
+function block_mat_vec_mul!(multithreaded::Multithreaded, C, A, B, sz)
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_vec_mul!(singlethreaded, C, A, B, sz)
     mstep = LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -74,8 +74,7 @@ function block_mat_vec_mul!(::Multithreaded, C, A, B, sz)
     end
     @sync begin
         Threads.@spawn begin
-            #_mul!(multithreaded,     C11, A11, B11, sz)
-            gemm_kernel!(C11, A11, B11)
+            _mul!(multithreaded,     C11, A11, B11, sz)
             _mul_add!(multithreaded, C11, A12, B21, sz)
         end
         _mul!(multithreaded,     C21, A21, B11, sz)
@@ -101,7 +100,9 @@ function block_mat_vec_mul!(::Singlethreaded, C, A, B, sz)
     _mul_add!(singlethreaded, C21, A22, B21, sz)
 end
 
-function block_mat_vec_mul!(::Multithreaded, C::VecTypes, A, B::VecTypes, sz)
+function block_mat_vec_mul!(multithreaded::Multithreaded, C::VecTypes, A, B::VecTypes, sz)
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_vec_mul!(singlethreaded, C, A, B, sz)
     mstep = LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -117,7 +118,7 @@ function block_mat_vec_mul!(::Multithreaded, C::VecTypes, A, B::VecTypes, sz)
     end
     @sync begin
         Threads.@spawn begin
-            gemm_kernel!(C11, A11, B11)
+            _mul!(multithreaded,     C11, A11, B11, sz)
             _mul_add!(multithreaded, C11, A12, B21, sz)
         end
         _mul!(multithreaded,     C21, A21, B11, sz)
@@ -142,7 +143,9 @@ function block_mat_vec_mul!(::Singlethreaded, C::VecTypes, A, B::VecTypes, sz)
     _mul_add!(singlethreaded, C21, A22, B21, sz)
 end
 
-function block_covec_mat_mul!(::Multithreaded, C, A, B, sz)
+function block_covec_mat_mul!(multithreaded::Multithreaded, C, A, B, sz)
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_covec_mat_mul!(singlethreaded, C, A, B, sz)
     nstep = LoopVectorization.pick_vector_width(eltype(B))
     n1 = min(max(sz, nstep * div(size(B, 2), 2nstep, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -156,8 +159,7 @@ function block_covec_mat_mul!(::Multithreaded, C, A, B, sz)
     end
     @sync begin
         Threads.@spawn begin
-            #_mul!(multithreaded,     C11, A11, B11, sz)
-            gemm_kernel!(C11, A11, B11)
+            _mul!(multithreaded,     C11, A11, B11, sz)
             _mul_add!(multithreaded, C11, A12, B21, sz)
         end
         _mul!(multithreaded,     C12, A11, B12, sz)
@@ -176,12 +178,14 @@ function block_covec_mat_mul!(::Singlethreaded, C, A, B, sz)
     end
     #_mul!(threading,     C11, A11, B11, sz)
     gemm_kernel!(C11, A11, B11)
-    _mul_add!(multithreaded, C11, A12, B21, sz)
-    _mul!(multithreaded,     C12, A11, B12, sz)
-    _mul_add!(multithreaded, C12, A12, B22, sz)
+    _mul_add!(singlethreaded, C11, A12, B21, sz)
+    _mul!(singlethreaded,     C12, A11, B12, sz)
+    _mul_add!(singlethreaded, C12, A12, B22, sz)
 end
 
-function block_vec_covec_mul!(::Multithreaded, C, A, B, sz)
+function block_vec_covec_mul!(multithreaded::Multithreaded, C, A, B, sz)
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_vec_covec_mul!(singlethreaded, C, A, B, sz)
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
@@ -197,8 +201,7 @@ function block_vec_covec_mul!(::Multithreaded, C, A, B, sz)
     end
     @sync begin
         Threads.@spawn begin
-            #_mul!(multithreaded,     C11, A11, B11, sz)
-            gemm_kernel!(C11, A11, B11)
+            _mul!(multithreaded, C11, A11, B11, sz)
         end
         Threads.@spawn begin
             _mul!(multithreaded, C12, A11, B12, sz)
@@ -250,15 +253,14 @@ function block_covec_vec_mul!(threading::Threading, C::VecTypes, A, B::VecTypes,
     _mul_add!(threading, C, A12, B21, sz)
 end
 
-@inline function block_mat_mat_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
-    #=
+@inline function block_mat_mat_mul_add!(multithreaded::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_mat_mul_add!(singlethreaded, C, A, B, sz, Val(factor))
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
-    =#
-    m1 = n1 = k1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
@@ -271,7 +273,7 @@ end
     end
     @sync begin
         Threads.@spawn begin
-            add_gemm_kernel!(C11, A11, B11, Val(factor))
+            _mul_add!(multithreaded, C11, A11, B11, sz, Val(factor))
             _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
         end
         Threads.@spawn begin
@@ -308,7 +310,9 @@ end
     _mul_add!(singlethreaded, C22, A22, B22, sz, Val(factor))
 end
 
-function block_mat_vec_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+function block_mat_vec_mul_add!(multithreaded::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_vec_mul_add!(singlethreaded, C, A, B, sz, Val(factor))
     mstep = LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -324,7 +328,7 @@ function block_mat_vec_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Va
     end
     @sync begin
         Threads.@spawn begin
-            add_gemm_kernel!(C11, A11, B11, Val(factor))
+            _mul_add!(multithreaded, C11, A11, B11, sz, Val(factor))
             _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
         end
         _mul_add!(multithreaded, C21, A21, B11, sz, Val(factor))
@@ -349,7 +353,9 @@ function block_mat_vec_mul_add!(::Singlethreaded, C, A, B, sz, ::Val{factor} = V
     _mul_add!(singlethreaded, C21, A22, B21, sz, Val(factor))
 end
 
-function block_mat_vec_mul_add!(::Multithreaded, C::VecTypes, A, B::VecTypes, sz, ::Val{factor} = Val(1)) where {factor}
+function block_mat_vec_mul_add!(multithreaded::Multithreaded, C::VecTypes, A, B::VecTypes, sz, ::Val{factor} = Val(1)) where {factor}
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_mat_vec_mul_add!(singlethreaded, C, A, B, sz, Val(factor))
     mstep = LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -365,7 +371,7 @@ function block_mat_vec_mul_add!(::Multithreaded, C::VecTypes, A, B::VecTypes, sz
     end
     @sync begin
         Threads.@spawn begin
-            add_gemm_kernel!(C11, A11, B11, Val(factor))
+            _mul_add!(multithreaded, C11, A11, B11, sz, Val(factor))
             _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
         end
         _mul_add!(multithreaded, C21, A21, B11, sz, Val(factor))
@@ -385,12 +391,14 @@ function block_mat_vec_mul_add!(::Singlethreaded, C::VecTypes, A, B::VecTypes, s
         B21 = B[sz+1:end];
     end
     add_gemm_kernel!(C11, A11, B11, Val(factor))
-    _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
-    _mul_add!(multithreaded, C21, A21, B11, sz, Val(factor))
-    _mul_add!(multithreaded, C21, A22, B21, sz, Val(factor))
+    _mul_add!(singlethreaded, C11, A12, B21, sz, Val(factor))
+    _mul_add!(singlethreaded, C21, A21, B11, sz, Val(factor))
+    _mul_add!(singlethreaded, C21, A22, B21, sz, Val(factor))
 end
 
-function block_covec_mat_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+function block_covec_mat_mul_add!(multithreaded::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_covec_mat_mul_add!(singlethreaded, C, A, B, sz, Val(factor))
     nstep = LoopVectorization.pick_vector_width(eltype(B))
     n1 = min(max(sz, nstep * div(size(B, 2), 2nstep, RoundNearest)), size(B, 2) - sz)
     k1 = min(max(sz, div(size(A, 2), 2, RoundNearest)), size(A, 2) - sz)
@@ -404,7 +412,7 @@ function block_covec_mat_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = 
     end
     @sync begin
         Threads.@spawn begin
-            add_gemm_kernel!(C11, A11, B11, Val(factor))
+            _mul_add!(multithreaded, C11, A11, B11, sz, Val(factor))
             _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
         end
         _mul_add!(multithreaded, C12, A11, B12, sz, Val(factor))
@@ -427,14 +435,13 @@ function block_covec_mat_mul_add!(::Singlethreaded, C, A, B, sz, ::Val{factor} =
     _mul_add!(singlethreaded, C12, A12, B22, sz, Val(factor))
 end
 
-function block_vec_covec_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
-    #=
+function block_vec_covec_mul_add!(multithreaded::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
+    use_singlethread(multithreaded, C, A, B) &&
+        return block_vec_covec_mul_add!(singlethreaded, C, A, B, sz, Val(factor))
     mᵣ, nᵣ = LoopVectorization.matmul_params()
     mstep = mᵣ * LoopVectorization.pick_vector_width(eltype(A))
     m1 = min(max(sz, mstep * div(size(A, 1), 2mstep, RoundNearest)), size(A, 1) - sz)
     n1 = min(max(sz, nᵣ * div(size(B, 2), 2nᵣ, RoundNearest)), size(B, 2) - sz)
-    =#
-    m1 = n1 = sz
     @inbounds @views begin
         C11 = C[1:m1,     1:n1]; C12 = C[1:m1,     n1+1:end]
         C21 = C[m1+1:end, 1:n1]; C22 = C[m1+1:end, n1+1:end]
@@ -446,7 +453,7 @@ function block_vec_covec_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = 
     end
     @sync begin
         Threads.@spawn begin
-            add_gemm_kernel!(C11, A11, B11, Val(factor))
+            _mul_add!(multithreaded, C11, A11, B11, sz, Val(factor))
         end
         Threads.@spawn begin
             _mul_add!(multithreaded, C12, A11, B12, sz, Val(factor))
