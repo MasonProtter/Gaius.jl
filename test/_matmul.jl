@@ -6,9 +6,10 @@
 # `m_values`
 
 @time @testset "_mul!: C, A, B $(testset_name_suffix)" begin
-    multithreaded = Gaius.Multithreaded(2^24)
-    for threading in [Gaius.singlethreaded, multithreaded]
-        for sz in sz_values
+    for sz in sz_values
+        singlethreaded = Gaius.Singlethreaded(sz)
+        multithreaded = Gaius.Multithreaded(2^24, singlethreaded)
+        for threading in [singlethreaded, multithreaded]
             for n in n_values
                 for k in k_values
                     for m in m_values
@@ -16,8 +17,8 @@
                         B = randn(Float64, k, m)
                         C1 = zeros(Float64, n, m)
                         C2 = zeros(Float64, n, m)
-                        Gaius._mul!(    threading, C1, A, B, sz)
-                        Gaius._mul_add!(threading, C2, A, B, sz, Val(1))
+                        Gaius._mul!(    threading, C1, A, B)
+                        Gaius._mul_add!(threading, C2, A, B, Val(1))
                         @test A * B ≈ C1
                         @test A * B ≈ C2
                     end
@@ -28,9 +29,10 @@
 end
 
 @time @testset "_mul!: C::VecTypes, A::MatTypes, B::VecTypes $(testset_name_suffix)" begin
-    multithreaded = Gaius.Multithreaded(2^24)
-    for threading in [Gaius.singlethreaded, multithreaded]
-        for sz in sz_values
+    for sz in sz_values
+        singlethreaded = Gaius.Singlethreaded(sz)
+        multithreaded = Gaius.Multithreaded(2^24, singlethreaded)
+        for threading in [singlethreaded, multithreaded]
             for n in n_values
                 for k in k_values
                     for m in m_values
@@ -38,8 +40,8 @@ end
                         B = randn(Float64, k)
                         C1 = zeros(Float64, n)
                         C2 = zeros(Float64, n)
-                        Gaius._mul!(    threading, C1, A, B, sz)
-                        Gaius._mul_add!(threading, C2, A, B, sz, Val(1))
+                        Gaius._mul!(    threading, C1, A, B)
+                        Gaius._mul_add!(threading, C2, A, B, Val(1))
                         @test A * B ≈ C1
                         @test A * B ≈ C2
                     end
@@ -50,9 +52,10 @@ end
 end
 
 @time @testset "_mul!: C::CoVecTypes, A::CoVecTypes, B::MatTypes $(testset_name_suffix)" begin
-    multithreaded = Gaius.Multithreaded(2^24)
-    for threading in [Gaius.singlethreaded, multithreaded]
-        for sz in sz_values
+    for sz in sz_values
+        singlethreaded = Gaius.Singlethreaded(sz)
+        multithreaded = Gaius.Multithreaded(2^24, singlethreaded)
+        for threading in [singlethreaded, multithreaded]
             for n in n_values
                 for k in k_values
                     for m in m_values
@@ -60,8 +63,8 @@ end
                         B = randn(Float64, n, m)
                         C1 = adjoint(zeros(Float64, m))
                         C2 = adjoint(zeros(Float64, m))
-                        Gaius._mul!(    threading, C1, A, B, sz)
-                        Gaius._mul_add!(threading, C2, A, B, sz, Val(1))
+                        Gaius._mul!(    threading, C1, A, B)
+                        Gaius._mul_add!(threading, C2, A, B, Val(1))
                         @test A * B ≈ C1
                         @test A * B ≈ C2
                     end

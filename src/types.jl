@@ -11,12 +11,14 @@ const CoVecTypes{T} = Union{Adjoint{T,   <:VecTypes{T}},
 
 abstract type Threading end
 
+struct Singlethreaded <: Threading
+    block_size::Int64
+end
+
 struct Multithreaded <: Threading
     singlethread_size::Int64
-    # TODO: Add `block_size`
+    singlethreaded::Singlethreaded
 end
 
-struct Singlethreaded <: Threading
-end
-
-const singlethreaded = Singlethreaded()
+get_block_size(singlethreaded::Singlethreaded) = singlethreaded.block_size
+get_block_size(multithreaded::Multithreaded) = get_block_size(multithreaded.singlethreaded)
