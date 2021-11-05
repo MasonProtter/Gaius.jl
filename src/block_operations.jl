@@ -173,9 +173,9 @@ function block_covec_mat_mul!(::Singlethreaded, C, A, B, sz)
     end
     #_mul!(threading,     C11, A11, B11, sz)
     gemm_kernel!(C11, A11, B11)
-    _mul_add!(multithreaded, C11, A12, B21, sz)
-    _mul!(multithreaded,     C12, A11, B12, sz)
-    _mul_add!(multithreaded, C12, A12, B22, sz)
+    _mul_add!(singlethreaded, C11, A12, B21, sz)
+    _mul!(singlethreaded,     C12, A11, B12, sz)
+    _mul_add!(singlethreaded, C12, A12, B22, sz)
 end
 
 function block_vec_covec_mul!(::Multithreaded, C, A, B, sz)
@@ -379,9 +379,9 @@ function block_mat_vec_mul_add!(::Singlethreaded, C::VecTypes, A, B::VecTypes, s
         B21 = B[sz+1:end];
     end
     add_gemm_kernel!(C11, A11, B11, Val(factor))
-    _mul_add!(multithreaded, C11, A12, B21, sz, Val(factor))
-    _mul_add!(multithreaded, C21, A21, B11, sz, Val(factor))
-    _mul_add!(multithreaded, C21, A22, B21, sz, Val(factor))
+    _mul_add!(singlethreaded, C11, A12, B21, sz, Val(factor))
+    _mul_add!(singlethreaded, C21, A21, B11, sz, Val(factor))
+    _mul_add!(singlethreaded, C21, A22, B21, sz, Val(factor))
 end
 
 function block_covec_mat_mul_add!(::Multithreaded, C, A, B, sz, ::Val{factor} = Val(1)) where {factor}
