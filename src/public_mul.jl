@@ -79,10 +79,9 @@ function mul!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{T};
               sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
-    _block_size = choose_block_size(C, A, B, block_size)
-    multithreaded = choose_parameter(C, A, B, singlethread_size)
+    multithreaded = choose_multithread_parameter(C, A, B, singlethread_size, block_size)
 
-    _mul!(multithreaded, C, A, B, _block_size)
+    _mul!(multithreaded, C, A, B)
     C
 end
 
@@ -90,9 +89,9 @@ function mul_serial!(C::AbstractArray{T}, A::AbstractArray{T}, B::AbstractArray{
                               block_size = nothing, sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C, A, B)
 
-    _block_size = choose_block_size(C, A, B, block_size)
+    singlethreaded = choose_singlethread_parameter(C, A, B, block_size)
 
-    _mul!(singlethreaded, C, A, B, _block_size)
+    _mul!(singlethreaded, C, A, B)
     C
 end
 
@@ -101,17 +100,16 @@ function mul!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::StructA
               sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
-    multithreaded = choose_parameter(C, A, B, singlethread_size)
+    multithreaded = choose_multithread_parameter(C, A, B, singlethread_size, block_size)
 
     GC.@preserve C A B begin
         Cre, Cim = C.re, C.im
         Are, Aim = A.re, A.im
         Bre, Bim = B.re, B.im
-        _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(multithreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    multithreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(multithreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    multithreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(multithreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     C
 end
@@ -120,16 +118,16 @@ function mul_serial!(C::StructArray{Complex{T}}, A::StructArray{Complex{T}}, B::
                               block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.re, A.re, B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
+    singlethreaded = choose_singlethread_parameter(C, A, B, block_size)
 
     GC.@preserve C A B begin
         Cre, Cim = (C.re), (C.im)
         Are, Aim = (A.re), (A.im)
         Bre, Bim = (B.re), (B.im)
-        _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(singlethreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    singlethreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(singlethreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    singlethreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(singlethreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     C
 end
@@ -141,17 +139,16 @@ function mul!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
               sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
-    multithreaded = choose_parameter(C, A, B, singlethread_size)
+    multithreaded = choose_multithread_parameter(C, A, B, singlethread_size, block_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re'), (C.parent.im')
         Are, Aim = (A.parent.re'), (A.parent.im')
         Bre, Bim = (B.re), (B.im)
-        _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(multithreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    multithreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(multithreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    multithreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(multithreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     A.parent.im .= (-).(A.parent.im)
     C.parent.im .= (-).(C.parent.im) # ugly hack
@@ -164,16 +161,16 @@ function mul_serial!(C::Adjoint{Complex{T}, <:StructArray{Complex{T}}},
                               block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re', A.parent.re', B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
+    singlethreaded = choose_singlethread_parameter(C, A, B, block_size)
     A.parent.im .= (-).(A.parent.im) #ugly hack
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re'), (C.parent.im')
         Are, Aim = (A.parent.re'), (A.parent.im')
         Bre, Bim = (B.re), (B.im)
-        _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(singlethreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    singlethreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(singlethreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    singlethreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(singlethreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     A.parent.im .= (-).(A.parent.im)
     C.parent.im .= (-).(C.parent.im) # ugly hack
@@ -187,17 +184,16 @@ function mul!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
               sizecheck = true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
-    multithreaded = choose_parameter(C, A, B, singlethread_size)
+    multithreaded = choose_multithread_parameter(C, A, B, singlethread_size, block_size)
 
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re |> transpose), (C.parent.im |> transpose)
         Are, Aim = (A.parent.re |> transpose), (A.parent.im |> transpose)
         Bre, Bim = (B.re), (B.im)
-        _mul!(    multithreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(multithreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    multithreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(multithreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    multithreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(multithreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    multithreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(multithreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     C
 end
@@ -208,16 +204,16 @@ function mul_serial!(C::Transpose{Complex{T}, <:StructArray{Complex{T}}},
                               block_size = default_block_size(), sizecheck=true) where {T <: Eltypes}
     sizecheck && check_compatible_sizes(C.parent.re |> transpose, A.parent.re |> transpose, B.re)
 
-    _block_size = choose_block_size(C, A, B, block_size)
+    singlethreaded = choose_singlethread_parameter(C, A, B, block_size)
 
     GC.@preserve C A B begin
         Cre, Cim = (C.parent.re |> transpose), (C.parent.im |> transpose)
         Are, Aim = (A.parent.re |> transpose), (A.parent.im |> transpose)
         Bre, Bim = (B.re), (B.im)
-        _mul!(    singlethreaded,     Cre, Are, Bre, _block_size)          # C.re = A.re * B.re
-        _mul_add!(singlethreaded,     Cre, Aim, Bim, _block_size, Val(-1)) # C.re = C.re - A.im * B.im
-        _mul!(    singlethreaded,     Cim, Are, Bim, _block_size)          # C.im = A.re * B.im
-        _mul_add!(singlethreaded,     Cim, Aim, Bre, _block_size)          # C.im = C.im + A.im * B.re
+        _mul!(    singlethreaded,     Cre, Are, Bre)          # C.re = A.re * B.re
+        _mul_add!(singlethreaded,     Cre, Aim, Bim, Val(-1)) # C.re = C.re - A.im * B.im
+        _mul!(    singlethreaded,     Cim, Are, Bim)          # C.im = A.re * B.im
+        _mul_add!(singlethreaded,     Cim, Aim, Bre)          # C.im = C.im + A.im * B.re
     end
     C
 end

@@ -8,16 +8,23 @@ end
 
 choose_block_size(C, A, B, block_size::Integer) = block_size
 
-function choose_parameter(C, A, B, ::Nothing)
+choose_singlethread_parameter(C, A, B, block_size) =
+    Singlethreaded(choose_block_size(C, A, B, block_size))
+
+function choose_multithread_parameter(C, A, B, ::Nothing, block_size)
     m = Int128(size(A, 1))
     n = Int128(size(B, 1))
     k = Int128(size(A, 2))
     oversubscription_ratio = 8  # a magic constant that Works For Me
     singlethread_size = cld(m * n * k, oversubscription_ratio * Threads.nthreads())
-    return Multithreaded(singlethread_size)
+    return Multithreaded(
+        singlethread_size,
+        choose_singlethread_parameter(C, A, B, block_size),
+    )
 end
 
-choose_parameter(C, A, B, singlethread_size::Integer) = Multithreaded(singlethread_size)
+choose_multithread_parameter(C, A, B, singlethread_size::Integer, block_size) =
+    Multithreaded(singlethread_size, choose_singlethread_parameter(C, A, B, block_size))
 
 function use_singlethread(multithreaded::Multithreaded, C, A, B)
     m = Int128(size(A, 1))
