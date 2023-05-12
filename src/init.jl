@@ -6,10 +6,10 @@ end
 function _print_num_threads_warning()
     sys_nc = Int(VectorizationBase.num_cores())::Int
     jl_nt = Threads.nthreads()
-    return _print_num_threads_warning(sys_nc, jl_nt)
+    return _print_num_threads_warning(Int(sys_nc), jl_nt)
 end
 
-function _print_num_threads_warning(sys_nc::Integer, jl_nt::Integer)
+function _print_num_threads_warning(sys_nc::Int, jl_nt::Int)
     if jl_nt < sys_nc
         if !_is_suppress_warning()
             msg = string(
